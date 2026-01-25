@@ -3,7 +3,7 @@ name = "llego"
 version = "0.1.0"
 description = "Decision Tree Induction Through LLMs via Semantically-Aware Evolution"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10,<3.13"
 license = {file = "LICENSE"}
 keywords = ["decision tree", "llm", "language model", "machine", "learning", "ai"]
 authors = [
@@ -22,21 +22,21 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
 ]
 dependencies = [
-  "aiohttp==3.9.4",
-  "gosdt==0.1.8",
-  "hydra-core==1.3.2",
-  "langchain==0.2.1",
-  "numpy==1.23.5",
-  "omegaconf==2.3.0",
-  "openai==0.28.0",
-  "openml==0.14.2",
-  "optuna==3.6.1",
-  "pandas==1.3.5",
-  "pytest==8.2.1",
-  "PyYAML==6.0.1",
-  "scikit_learn==1.3.2",
-  "wandb==0.17.0",
-  "cython"
+  "aiohttp>=3.9.4",
+  "dictionary-learning>=0.1.0",
+  "hydra-core>=1.3.2",
+  "langchain>=0.2.1",
+  "numpy>=1.24.0",
+  "omegaconf>=2.3.0",
+  "openai>=1.0.0",
+  "openml>=0.14.2",
+  "optuna>=3.6.1",
+  "pandas>=1.5.0",
+  "pytest>=8.2.1",
+  "PyYAML>=6.0.1",
+  "scikit_learn>=1.3.2",
+  "transformer-lens>=2.15.4",
+  "wandb>=0.17.0",
 ]
 
 [tool.setuptools]
