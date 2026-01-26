@@ -1,0 +1,17 @@
+{
+  "swap_experiment": {
+    "summary": {
+      "n_trials": 5,
+      "n_both_parsed": 4,
+      "n_trees_identical": 3,
+      "identical_rate": 0.75,
+      "interpretation": "LLM IGNORES fitness"
+    }
+  },
+  "ablation_experiment": {
+    "summary": {
+      "with_fitness_parse_rate": 0.8,
+      "without_fitness_parse_rate": 0.8
+    }
+  }
+}

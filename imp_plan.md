@@ -1,326 +1,380 @@
-# LLEGO-Guided: Implementation Plan
+# Distilling Evolutionary Priors from Language Models
 
-## Semantically-Selective Evolutionary Operators for Decision Tree Induction
+## A Mechanistic Investigation of LLM-Guided Decision Tree Evolution
 
 ---
 
 ## Executive Summary
 
-**Core Idea:** Use mechanistic analysis to design **improved genetic operators** that selectively use LLM capabilities only when semantically justified, achieving comparable performance with fewer LLM calls.
+**Core Idea:** Use mechanistic interpretability (MI) to understand *what* LLMs contribute to evolutionary decision tree induction, then **distill** those capabilities into lightweight, interpretable components that work without LLM calls.
 
 **Why This Matters:**
-1. **Computational Cost:** LLM calls are expensive; reducing them makes the approach practical
-2. **Healthcare Bias:** Understanding *when* LLMs help prevents silent failures on sensitive data
-3. **Scientific Understanding:** Principled design over black-box optimization
+1. **Scientific Understanding:** We don't know *why* LLEGO works—understanding the mechanism advances the field
+2. **Healthcare Deployment:** LLM black boxes are problematic for medical applications; distilled components are auditable
+3. **Practical Impact:** If successful, we get LLEGO-level performance without LLEGO-level compute costs
+
+**Risk Acknowledgment:** This is ambitious. Distillation may not fully capture LLM capabilities. But even partial success or well-characterized failure is a valid scientific contribution.
 
 ---
 
 ## Problem Statement
 
-**Current Limitation:** LLEGO uses LLM-based crossover/mutation for *every* genetic operation, regardless of whether semantic knowledge is beneficial. This is:
-1. **Computationally wasteful** - LLM calls when standard operators would suffice
-2. **Potentially harmful** - LLM biases may hurt performance on some problem types
-3. **Poorly understood** - no principled way to know when LLMs help
+**The Scientific Gap:** LLEGO demonstrates that LLMs can enhance evolutionary search for decision trees, but we have no understanding of *what computational mechanisms* enable this. Is it:
+- Semantic knowledge about feature relationships?
+- Implicit structural priors about "good" trees?
+- Better exploration via language model diversity?
+- Domain knowledge from pretraining?
 
-**Research Question:** Can we design a *selective* hybrid system that uses LLM operators only when mechanistically justified, achieving comparable or better performance with fewer LLM calls?
+**Why This Matters Beyond Efficiency:**
+- Without understanding, we can't predict when LLEGO will fail
+- We can't identify potential biases from LLM pretraining
+- We can't deploy in high-stakes settings requiring interpretability
 
----
-
-## Mechanistic Interpretability: Practical Considerations
-
-### The Open Source Question
-
-**Short Answer:** Yes, we need open-source/open-weight models for deep MI analysis.
-
-| Approach | Closed Models (GPT-4, Claude) | Open Models (Llama, Mistral, Qwen) |
-|----------|-------------------------------|-------------------------------------|
-| Logit lens / probing | ❌ No access | ✅ Full access |
-| Attention analysis | ❌ No access | ✅ Full access |
-| SAE features | ❌ No access | ✅ Can use pretrained or train |
-| Activation patching | ❌ No access | ✅ Full access |
-| Behavioral probing | ✅ API only | ✅ Full access |
-| Prompt ablation | ✅ Works | ✅ Works |
-
-**Recommendation:** Use **Llama 3.1 8B** or **Qwen 2.5 7B** as primary model
-- Small enough to run locally (fits on A100 / good consumer GPU)
-- Large enough to be capable at the task
-- Open weights = full interpretability access
-- Can compare behavioral results to closed models
-
-### MI Tooling Options (No Training Required)
-
-#### Tier 1: Zero Training Overhead
-
-| Method | What It Reveals | Tools Available | Effort |
-|--------|-----------------|-----------------|--------|
-| **Logit Lens** | What model "believes" at each layer | TransformerLens | Low |
-| **Attention Patterns** | What tokens attend to what | TransformerLens, BertViz | Low |
-| **Activation Patching** | Causal importance of components | TransformerLens, pyvene | Medium |
-| **Prompt Ablation** | Which prompt parts matter | Custom (easy) | Low |
-| **Behavioral Probing** | Input-output relationships | Custom (easy) | Low |
-
-#### Tier 2: Requires Some Training
-
-| Method | What It Reveals | Tools Available | Effort |
-|--------|-----------------|-----------------|--------|
-| **Linear Probes** | What info is encoded where | sklearn + hooks | Low-Medium |
-| **Concept Activation Vectors** | Direction of concepts in activation space | Custom | Medium |
-| **Steering Vectors** | Can we control behavior? | Custom | Medium |
-
-#### Tier 3: Pretrained SAEs Available
-
-| Model | SAE Availability | Source |
-|-------|------------------|--------|
-| Llama 3.1 8B | ✅ EleutherAI SAEs | [sae-lens](https://github.com/jbloomAus/SAELens) |
-| Gemma 2 9B | ✅ Google DeepMind | [gemma-scope](https://huggingface.co/google/gemma-scope) |
-| GPT-2 | ✅ Many available | Various |
-| Mistral 7B | ⚠️ Limited | Community |
-
-**Recommendation for MVP:** Start with Tier 1 methods (zero training), add probes if time permits.
+**Research Questions:**
+1. What do LLMs actually contribute to evolutionary tree induction? (Diagnostic)
+2. Can we extract and distill these contributions into lightweight, interpretable components? (Methodological)
+3. Does distilled evolution achieve comparable performance without LLM calls? (Empirical)
 
 ---
 
-## Proposed Method: Three Components
+## Proposed Method: Three Phases
 
-### Component 1: Semantic Relevance Scorer
+### Phase 1: Mechanistic Diagnosis (Days 1-4)
 
-**Purpose:** Predict whether LLM-based operators will benefit a given problem instance.
+**Goal:** Identify what LLMs contribute through controlled experiments and activation analysis.
 
-**Intuition:** LLMs should help more when feature names carry semantic meaning (e.g., "blood_pressure") vs. arbitrary names (e.g., "X1").
+#### Experiment 1.1: Semantic Ablation Study
+**Question:** Does LLM performance depend on meaningful feature names?
 
 ```python
-class SemanticRelevanceScorer:
-    """
-    Scores how much semantic knowledge an LLM might contribute.
+# Run LLEGO on same dataset with two conditions:
+# Condition A: Semantic features ("age", "blood_pressure", "cholesterol")  
+# Condition B: Arbitrary features ("X1", "X2", "X3")
+
+# If performance_A >> performance_B → semantics matter
+# If performance_A ≈ performance_B → structural priors dominate
+```
+
+**What we learn:** Whether to distill semantic knowledge vs structural priors
+
+#### Experiment 1.2: Fitness Attention Analysis  
+**Question:** Does the LLM actually use fitness information in crossover?
+
+```python
+from nnsight import LanguageModel
+
+model = LanguageModel("meta-llama/Llama-3.1-8B-Instruct")
+
+def analyze_fitness_attention(prompt_with_fitness):
+    with model.trace(prompt_with_fitness) as tracer:
+        # Extract attention patterns from all layers
+        for layer in range(32):
+            attn = model.model.layers[layer].self_attn.attn_weights.save()
     
-    Uses sentence embeddings to measure "meaningfulness" of feature names.
-    """
+    # Find attention from generation tokens → fitness value tokens
+    fitness_token_positions = find_token_positions(prompt, ["fitness=", "0.85"])
+    attention_to_fitness = aggregate_attention(attn, fitness_token_positions)
     
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
-        self.encoder = SentenceTransformer(model_name)
+    return attention_to_fitness  # Low = LLM ignores fitness!
+```
+
+**What we learn:** Whether fitness-aware prompting matters
+
+#### Experiment 1.3: Structural Prior Elicitation
+**Question:** What tree structures does the LLM prefer, independent of semantics?
+
+```python
+# Generate many trees using arbitrary feature names
+# Analyze distribution of:
+# - Tree depth
+# - Balance (left vs right subtree size)
+# - Branching factor
+# - Feature reuse patterns
+
+# Compare to: random trees, human-designed trees, optimal trees
+```
+
+**What we learn:** The implicit structural prior we need to distill
+
+#### Experiment 1.4: Activation Patching (if time)
+**Question:** Which model components are causally responsible for good crossovers?
+
+```python
+def patch_experiment(good_prompt, bad_prompt, layer):
+    """
+    Run bad_prompt, but patch in activations from good_prompt at layer.
+    If output improves → this layer is causally important.
+    """
+    with model.trace(bad_prompt) as tracer:
+        # Get activations from good prompt
+        with model.trace(good_prompt) as good_tracer:
+            good_acts = model.model.layers[layer].output.save()
         
-        # Reference embeddings
-        self.meaningful_examples = ["age", "blood_pressure", "income", "heart_rate"]
-        self.arbitrary_examples = ["X1", "feature_0", "var_a", "col1"]
+        # Patch into bad prompt
+        model.model.layers[layer].output = good_acts
+        patched_output = model.generate()
     
-    def score_problem(self, problem: ProblemInstance) -> dict:
-        """Returns semantic score in [0,1] and LLM recommendation."""
-        # Embed feature names, compare to meaningful vs arbitrary centroids
-        ...
+    return evaluate_crossover_quality(patched_output)
 ```
 
-### Component 2: Fitness-Conditioned Prompt Engineering
+**What we learn:** Which layers encode crossover-relevant knowledge
 
-**Purpose:** Make fitness information more salient to LLMs during crossover.
+---
 
-**MI Insight:** Standard prompts may not effectively communicate which parent is "better."
+### Phase 2: Distillation (Days 5-8)
+
+**Goal:** Extract identified mechanisms into lightweight, interpretable components.
+
+Based on Phase 1 findings, we distill up to two components:
+
+#### Component A: Structural Prior Model
+
+**If MI shows structural priors matter:**
 
 ```python
-class FitnessConditionedPrompter:
+class DistilledStructuralPrior:
     """
-    Three prompting strategies based on MI insights:
-    
-    1. original: Baseline LLEGO-style
-    2. enhanced: Explicit fitness comparison, labeled better/worse
-    3. contrastive: Force LLM to reason about differences first
+    A lightweight model that scores tree structures.
+    Learned from LLM-generated trees, but requires no LLM at inference.
     """
     
-    def create_crossover_prompt(self, parent1, parent2, style="enhanced"):
-        if style == "enhanced":
-            # Make fitness differential explicit
-            better, worse = sorted([parent1, parent2], key=lambda x: -x.fitness)
-            return f"""
-            IMPORTANT: Parent A performs {fitness_diff:.2%} BETTER than Parent B.
-            
-            BETTER Parent A (fitness={better.fitness:.4f}):
-            {better.structure}
-            
-            WORSE Parent B (fitness={worse.fitness:.4f}):
-            {worse.structure}
-            
-            Generate a child that preserves effective splits from Parent A.
-            """
+    def __init__(self):
+        # Simple MLP or decision rules learned from LLM outputs
+        self.depth_preference = None  # Learned from LLM tree distribution
+        self.balance_preference = None
+        self.feature_reuse_penalty = None
+    
+    def score_structure(self, tree: DecisionTree) -> float:
+        """Score how much this structure matches LLM's implicit prior."""
+        depth_score = self.depth_preference.score(tree.depth)
+        balance_score = self.balance_preference.score(tree.balance_ratio)
+        reuse_score = self.feature_reuse_penalty.score(tree.feature_reuse)
+        
+        return depth_score + balance_score + reuse_score
+    
+    @classmethod
+    def fit_from_llm_outputs(cls, llm_generated_trees: list[DecisionTree]):
+        """Distill structural prior from corpus of LLM-generated trees."""
+        prior = cls()
+        prior.depth_preference = fit_distribution([t.depth for t in llm_generated_trees])
+        prior.balance_preference = fit_distribution([t.balance_ratio for t in llm_generated_trees])
+        # ... etc
+        return prior
 ```
 
-### Component 3: Adaptive Hybrid Operator Selection
+#### Component B: Semantic Feature Graph
 
-**Purpose:** Dynamically choose between LLM and standard operators.
+**If MI shows semantic knowledge matters:**
 
 ```python
-class LLEGOGuided:
+class DistilledSemanticGraph:
     """
-    Main algorithm: Adaptively selects operators based on:
-    1. Semantic relevance of the problem (static)
-    2. Runtime performance feedback (dynamic)
+    A graph capturing feature relationships extracted from LLM.
+    Encodes: "age relates to heart_disease", "cholesterol predicts risk", etc.
     """
     
-    def __init__(self, problem, fitness_fn, config):
-        # Initial LLM probability from semantic score
-        self.llm_probability = self.semantic_scorer.score_problem(problem)
+    def __init__(self, feature_names: list[str]):
+        self.features = feature_names
+        self.relationships = {}  # (feature_i, feature_j) → strength
+        self.target_relevance = {}  # feature → target relevance
     
-    def _select_operator(self):
-        if random.random() < self.llm_probability:
-            return self.llm_op, "llm"
-        else:
-            return self.standard_op, "standard"
+    def compatibility_score(self, features_in_subtree: list[str]) -> float:
+        """Score how semantically coherent a set of features is."""
+        # Features that "go together" should be in same subtree
+        total = 0
+        for f1, f2 in combinations(features_in_subtree, 2):
+            total += self.relationships.get((f1, f2), 0)
+        return total
     
-    def _update_llm_probability(self):
-        # Increase if LLM outperforming, decrease otherwise
-        advantage = self.stats.llm_success_rate - self.stats.standard_success_rate
-        self.llm_probability += 0.05 * np.sign(advantage)
+    @classmethod
+    def extract_from_llm(cls, model, feature_names: list[str], target: str):
+        """
+        Use LLM to build semantic graph (ONE-TIME extraction).
+        
+        Prompt LLM: "Rate relationship strength between {f1} and {f2} 
+                     for predicting {target}. Score 0-10."
+        """
+        graph = cls(feature_names)
+        
+        for f1, f2 in combinations(feature_names, 2):
+            prompt = f"For predicting {target}, how related are {f1} and {f2}? Score 0-10."
+            with model.trace(prompt) as tracer:
+                score = extract_score_from_generation(model.generate())
+            graph.relationships[(f1, f2)] = score
+        
+        return graph
+```
+
+#### Combined: Distilled Evolution
+
+```python
+class DistilledEvolution:
+    """
+    Evolutionary algorithm using distilled components instead of LLM calls.
+    """
+    
+    def __init__(
+        self, 
+        structural_prior: DistilledStructuralPrior,
+        semantic_graph: DistilledSemanticGraph | None = None
+    ):
+        self.prior = structural_prior
+        self.semantics = semantic_graph
+    
+    def crossover(self, parent1: DecisionTree, parent2: DecisionTree) -> DecisionTree:
+        """
+        Crossover guided by distilled priors, NO LLM CALL.
+        """
+        # Generate candidate children via standard subtree crossover
+        candidates = self._generate_candidates(parent1, parent2, n=10)
+        
+        # Score each candidate using distilled components
+        scores = []
+        for child in candidates:
+            structure_score = self.prior.score_structure(child)
+            semantic_score = (
+                self.semantics.compatibility_score(child.get_features())
+                if self.semantics else 0
+            )
+            scores.append(structure_score + semantic_score)
+        
+        # Return best candidate
+        return candidates[np.argmax(scores)]
+    
+    def _generate_candidates(self, p1, p2, n=10) -> list[DecisionTree]:
+        """Generate n candidate children via standard crossover."""
+        candidates = []
+        for _ in range(n):
+            # Random subtree exchange
+            child = standard_subtree_crossover(p1, p2)
+            candidates.append(child)
+        return candidates
 ```
 
 ---
 
-## MI Analysis Plan (Lightweight Version)
+### Phase 3: MVP Validation (Days 9-11)
 
-### Phase 1: Behavioral Analysis (Days 1-3)
+**Goal:** Empirically validate that distilled components capture LLM contribution.
 
-**No model internals needed - works with any LLM**
+#### Experimental Setup
 
-1. **Prompt Ablation Study**
-   - Remove feature names → measure performance drop
-   - Remove fitness values → measure performance drop
-   - Remove task description → measure performance drop
-   - **Goal:** Quantify contribution of each prompt component
+| Method | Description | LLM Calls |
+|--------|-------------|-----------|
+| **GATree** | Standard GA, no LLM | 0 |
+| **LLEGO** | Original LLM-guided evolution | Many |
+| **Distilled-Struct** | GA + distilled structural prior | 0 (at runtime) |
+| **Distilled-Full** | GA + structural prior + semantic graph | 0 (at runtime) |
 
-2. **Semantic vs Arbitrary Features**
-   - Same data, meaningful vs arbitrary feature names
-   - **Goal:** Confirm LLMs leverage semantics
+#### Datasets
 
-3. **Fitness Sensitivity Test**
-   - Swap fitness labels (tell LLM worse parent is better)
-   - **Goal:** Does LLM actually use fitness information?
+| Dataset | Semantic Richness | Expected Result |
+|---------|-------------------|-----------------|
+| Heart Disease | High | Distilled-Full ≈ LLEGO |
+| Breast Cancer | High | Distilled-Full ≈ LLEGO |
+| Iris | Medium | Distilled-Struct ≈ LLEGO |
+| Iris (X1,X2...) | None | Distilled-Struct ≈ LLEGO > GATree? |
 
-### Phase 2: Activation Analysis (Days 4-6)
+#### Success Metrics
 
-**Requires open-weight model (Llama/Qwen)**
+| Metric | Success Criterion |
+|--------|-------------------|
+| **Accuracy Gap** | Distilled achieves ≥80% of (LLEGO - GATree) improvement |
+| **LLM Calls** | Distilled uses 0 LLM calls at runtime |
+| **Interpretability** | Distilled priors are human-readable |
 
-1. **Attention Pattern Analysis**
-   ```python
-   # Using TransformerLens
-   model = HookedTransformer.from_pretrained("meta-llama/Llama-3.1-8B")
-   
-   with model.hooks(fwd_hooks=[(f"blocks.{layer}.attn.hook_pattern", save_hook)]):
-       model(prompt)
-   
-   # Visualize: Do later layers attend to fitness values? Feature names?
-   ```
+---
 
-2. **Logit Lens**
-   - What does model "predict" at intermediate layers?
-   - Does it settle on tree structure early or late?
+## Fallback Positions (Risk Mitigation)
 
-3. **Activation Patching (if time)**
-   - Patch activations from "good crossover" into "bad crossover" run
-   - Identify which layers/heads are causal
+**If distillation doesn't work:**
 
-### Phase 3: Feature Analysis (Days 7-8, Optional)
+| Failure Mode | What We Learn | Pivot To |
+|--------------|---------------|----------|
+| MI reveals no clear mechanism | "LLM contribution is holistic/emergent" | Report as finding; do activation steering instead |
+| Structural prior helps but semantics don't distill | Semantics require full LLM | Report partial success; Distilled-Struct is still useful |
+| Distilled version << LLEGO | LLM contribution isn't separable | Report as negative result with analysis of why |
 
-**If pretrained SAEs available for chosen model**
+**Key insight:** Even well-characterized failure advances understanding.
+
+> "We attempted to distill LLM contributions but found that [specific capability] is not separable because [mechanistic reason]. This suggests LLM-evolution synergies arise from [emergent property], with implications for [future work]."
+
+This is a valid research contribution—it tells the community what *doesn't* work and why.
+
+---
+
+## Technical Requirements
+
+### Model Choice
+**Primary:** Llama 3.1 8B Instruct (or Qwen 2.5 7B)
+- Open weights = full MI access
+- Small enough for local inference
+- Capable enough for the task
+
+### MI Tooling
+**Primary:** nnsight
+- Clean API for activation access
+- Supports any HuggingFace model
+- Optional: NDIF remote execution for larger models
 
 ```python
-from sae_lens import SAE
+from nnsight import LanguageModel
 
-# Load pretrained SAE for Llama
-sae = SAE.load_from_pretrained("EleutherAI/llama-3.1-8b-sae-layer-16")
+model = LanguageModel("meta-llama/Llama-3.1-8B-Instruct")
 
-# Get activations during crossover
-activations = model.run_with_cache(prompt)[1]["blocks.16.mlp.hook_post"]
-
-# Decode to interpretable features
-features = sae.encode(activations)
-
-# Which features activate for "good" vs "bad" crossovers?
+# Simple activation extraction
+with model.trace(prompt) as tracer:
+    hidden = model.model.layers[16].output.save()
+    attn = model.model.layers[16].self_attn.attn_weights.save()
 ```
 
----
-
-## Experimental Design
-
-### Datasets
-
-| Dataset | Semantic Richness | Domain | Expected LLM Benefit |
-|---------|-------------------|--------|---------------------|
-| Breast Cancer | High | Medical | High |
-| Heart Disease | High | Medical | High |
-| COMPAS | Medium | Criminal Justice | Medium (bias concern!) |
-| Iris | Medium | Biology | Medium |
-| Iris (X1,X2...) | Low | - | Low |
-| Synthetic | None | - | None (control) |
-
-### Baselines
-
-1. **LLEGO-Full:** Always use LLM (original paper)
-2. **GATree:** Never use LLM (standard GA)
-3. **LLEGO-Random:** 50% LLM usage (random selection)
-4. **LLEGO-Guided:** Our adaptive method
-
-### Metrics
-
-| Metric | What It Measures |
-|--------|------------------|
-| Test Accuracy | Task performance |
-| LLM Calls | Computational cost |
-| Efficiency Ratio | Accuracy / LLM Calls |
-| Fitness Trajectory | Convergence speed |
-
-### Key Hypotheses
-
-1. **H1:** Semantic relevance score predicts when LLMs benefit tree evolution
-2. **H2:** Fitness-conditioned prompts improve LLM crossover quality
-3. **H3:** LLEGO-Guided achieves ≥90% of LLEGO's fitness with ≤50% of LLM calls
+### Compute Requirements
+- Phase 1 (MI): GPU with 24GB+ VRAM (A100, RTX 4090) or NDIF remote
+- Phase 2 (Distillation): CPU sufficient for fitting small models
+- Phase 3 (Validation): CPU sufficient for GA runs
 
 ---
 
-## Implementation Timeline
+## Timeline (12 Days)
 
-| Days | Phase | Deliverables |
-|------|-------|--------------|
-| 1-2 | Setup & Baseline | Replicate basic GA tree evolution; implement tree representation |
-| 3-4 | Component 1 | Semantic scorer with embedding-based feature analysis |
-| 5-6 | Component 2 | Fitness-conditioned prompt templates; LLM client |
-| 7-8 | Component 3 | Adaptive hybrid operator; integration |
-| 9-10 | MVP Experiments | Run comparisons on 3-4 UCI datasets |
-| 11-12 | MI Analysis | Behavioral probing + attention analysis (if time) |
-| 13-14 | Writing | Report with clear problem → method → results narrative |
+| Days | Phase | Deliverables | Risk Level |
+|------|-------|--------------|------------|
+| 1-2 | Setup | nnsight working; LLEGO baseline running | Low |
+| 3-4 | MI: Semantic ablation | Clear finding: does semantics matter? | Low |
+| 5-6 | MI: Fitness analysis + structural priors | Attention results; tree distribution | Medium |
+| 7-8 | Distillation: Build components | Structural prior model; semantic graph | High |
+| 9-10 | Validation: Run experiments | Comparison results | Medium |
+| 11-12 | Writing | Complete paper-style report | Low |
 
 ---
 
 ## Project Structure
 
 ```
-llego_guided/
+llego_distilled/
 ├── pyproject.toml
 ├── README.md
-├── llego_guided/
-│   ├── __init__.py
-│   ├── semantic_scorer.py      # Component 1
-│   ├── prompt_engineering.py   # Component 2
-│   ├── hybrid_evolution.py     # Component 3
-│   ├── tree_utils.py           # Decision tree parsing/generation
-│   └── llm_client.py           # LLM API wrapper (supports local + API)
 ├── mi_analysis/
-│   ├── behavioral_probing.py   # Prompt ablation, sensitivity tests
-│   ├── attention_analysis.py   # TransformerLens hooks
-│   └── feature_analysis.py     # SAE analysis (optional)
+│   ├── __init__.py
+│   ├── semantic_ablation.py    # Exp 1.1: semantic vs arbitrary
+│   ├── fitness_attention.py    # Exp 1.2: attention to fitness
+│   ├── structural_priors.py    # Exp 1.3: tree structure analysis
+│   └── activation_patching.py  # Exp 1.4: causal analysis (optional)
+├── distillation/
+│   ├── __init__.py
+│   ├── structural_prior.py     # Component A
+│   ├── semantic_graph.py       # Component B
+│   └── distilled_evolution.py  # Combined algorithm
 ├── experiments/
-│   ├── main_experiment.py      # MVP validation
-│   └── ablation_study.py       # Component contributions
+│   ├── run_mi_experiments.py
+│   ├── run_distillation.py
+│   └── run_comparison.py
 ├── results/
-└── tests/
+│   ├── mi_findings/
+│   └── comparison/
+└── report/
+    └── figures/
 ```
-
----
-
-## Risk Mitigation
-
-| Risk | Mitigation |
-|------|------------|
-| LLM too slow for evolution | Use smaller model (Llama 8B); batch prompts; cache responses |
-| MI analysis inconclusive | Focus on behavioral probing (always works); MI is means not end |
-| Results don't support hypothesis | Negative results are valid! "LLMs don't help on X" is useful finding |
-| Time constraints | Core MVP (Components 1-3) is achievable; MI is optional depth |
 
 ---
 
@@ -328,29 +382,25 @@ llego_guided/
 
 ```toml
 [project]
+name = "llego-distilled"
+version = "0.1.0"
+description = "Distilling Evolutionary Priors from Language Models"
+requires-python = ">=3.11"
 dependencies = [
     # Core
     "numpy>=1.24.0",
-    "scikit-learn>=1.3.0",
     "pandas>=2.0.0",
+    "scikit-learn>=1.3.0",
     
-    # Semantic scoring
-    "sentence-transformers>=2.2.0",
-    
-    # LLM
-    "openai>=1.0.0",           # For API models
-    "transformers>=4.40.0",    # For local models
+    # MI
+    "nnsight>=0.3.0",
+    "transformers>=4.40.0",
+    "torch>=2.0.0",
     "accelerate>=0.27.0",
     
     # Visualization
     "matplotlib>=3.7.0",
-]
-
-[project.optional-dependencies]
-mi = [
-    "transformer-lens>=1.0.0",
-    "torch>=2.0.0",
-    "sae-lens>=0.5.0",  # For pretrained SAEs
+    "seaborn>=0.12.0",
 ]
 ```
 
@@ -359,11 +409,73 @@ mi = [
 ## Success Criteria
 
 ### Minimum Viable Success
-- [ ] LLEGO-Guided runs on 3+ datasets
-- [ ] Demonstrates efficiency gain (fewer LLM calls for similar accuracy)
-- [ ] Clear visualization of semantic score → LLM benefit relationship
+- [ ] Clear MI findings on what LLM contributes (semantic vs structural)
+- [ ] At least one distilled component implemented
+- [ ] Some evidence it captures part of LLM contribution
+- [ ] Well-written report explaining findings and method
 
-### Stretch Goals
-- [ ] MI analysis reveals interpretable mechanism
-- [ ] Novel prompting strategy improves crossover quality
-- [ ] Framework generalizes to other LLM+evolution hybrid problems
+### Full Success
+- [ ] Both components distilled (structural + semantic)
+- [ ] Distilled-LLEGO achieves ≥80% of LLEGO's improvement over GATree
+- [ ] Zero LLM calls at runtime
+- [ ] Interpretable priors that can be inspected
+
+### Valuable Failure (Still a Contribution)
+- [ ] Clear MI findings on what LLM contributes
+- [ ] Evidence that contribution is NOT distillable + explanation why
+- [ ] Implications for future hybrid LLM+optimization systems
+
+---
+
+## Key Hypotheses
+
+| ID | Hypothesis | Test | Implication if True |
+|----|------------|------|---------------------|
+| H1 | LLM contribution depends on semantic feature names | Semantic ablation | Distill semantic graph |
+| H2 | LLM has structural tree priors independent of semantics | Arbitrary-feature analysis | Distill structural prior |
+| H3 | LLM ignores fitness values in prompts | Attention analysis + ablation | Fitness prompting is wasted |
+| H4 | Good crossovers activate specific attention patterns | Activation analysis | Can predict crossover quality |
+
+---
+
+## Report Outline (ICML/NeurIPS Style)
+
+### Title
+"Distilling Evolutionary Priors from Language Models: A Mechanistic Analysis of LLM-Guided Decision Tree Induction"
+
+### Abstract (150 words)
+- LLM-guided evolution works but we don't understand why
+- We use MI to diagnose mechanisms
+- We distill into lightweight components
+- Result: [X]% of performance, [0] LLM calls, [interpretable]
+
+### 1. Introduction
+- LLM+evolution is promising but opaque
+- Healthcare needs interpretability
+- Our contribution: understand → extract → validate
+
+### 2. Background & Related Work
+- LLEGO and LLM-guided optimization
+- Mechanistic interpretability
+- Knowledge distillation
+
+### 3. Mechanistic Analysis
+- Methodology: ablations, attention, activation analysis
+- Findings: what LLMs contribute
+
+### 4. Distillation Method
+- Structural prior model
+- Semantic feature graph
+- Distilled evolution algorithm
+
+### 5. Experiments
+- Setup: datasets, baselines, metrics
+- Results: comparison table + figures
+- Analysis: what distilled captures vs misses
+
+### 6. Discussion
+- Implications for LLM+optimization
+- Healthcare deployment considerations
+- Limitations
+
+### 7. Conclusion & Future Work

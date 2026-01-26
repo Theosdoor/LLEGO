@@ -1,0 +1,5 @@
+dataset,seed,crossover_idx,condition,tree_parsed_successfully,tree_depth,tree_size,tree_balance
+breast,0,0,semantic,True,4,4,0.2532007112629018
+breast,0,0,arbitrary,True,3,3,0.47306832173139113
+breast,0,1,semantic,True,5,5,0.10948110376582243
+breast,0,1,arbitrary,True,4,9,0.2632822845940852

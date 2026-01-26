@@ -33,7 +33,7 @@ Keep large datasets and model outputs outside the repository to avoid bloating g
 - Store large datasets externally or use data loaders that download on demand.
 - Experimental run outputs should be organized under `analysis/results/` for small, reproducible results that support paper figures/tables.
 
-## Experiment Logging (Recommended)
+## Experiment Logging (Required)
 For reproducibility, maintain clear records of experiments:
 - Document experiment commands, configurations, and results in a structured way.
 - Use descriptive experiment names (`exp_name` parameter) to organize outputs.
