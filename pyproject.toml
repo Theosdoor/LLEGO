@@ -27,6 +27,7 @@ dependencies = [
   "dictionary-learning>=0.1.0",
   "httpx>=0.28.1",
   "hydra-core>=1.3.2",
+  "ipykernel>=7.1.0",
   "langchain>=0.2.1",
   "numpy>=1.24.0",
   "omegaconf>=2.3.0",
@@ -95,3 +96,6 @@ ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"
+
+[tool.uv]
+managed = true

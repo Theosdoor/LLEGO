@@ -5,7 +5,8 @@ from pathlib import Path
 
 import hydra
 import wandb
-import weave
+os.environ['WEAVE_QUIET'] = '1'  # Before importing weave
+# import weave
 import yaml
 from dotenv import load_dotenv
 

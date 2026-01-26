@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=LLEGO
-#SBATCH --output=slurm_%j.log
-#SBATCH --error=slurm_%j.err
+#SBATCH --output=slurm/slurm_%j.log
+#SBATCH --error=slurm/slurm_%j.err
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
 #SBATCH --time=5:00:00
@@ -17,4 +17,5 @@ echo "Job running on node: $(hostname)"
 echo "------------------------------------------------------"
 
 # 3. Run the LLEGO experiment
-uv run experiments/exp_llego.py dataset=credit-g max_depth=3 seed=0 exp_name=classification
+python3 experiments/exp_llego.py dataset=credit-g max_depth=3 seed=0 exp_name=classification
+python3 analysis/read_results.py
