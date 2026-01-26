@@ -16,7 +16,8 @@ sys.path.insert(0, parent_path)
 
 # %%
 # unzip results file
-!unzip results/results_files.zip -d results/
+import subprocess
+subprocess.run(["unzip", "-o", "results/results_files.zip", "-d", "results/"], cwd="/home2/nchw73/vanDerSchaarWork/LLEGO/analysis")
 
 # %% [markdown]
 # # Classification
