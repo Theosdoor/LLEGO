@@ -5,8 +5,8 @@
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
 #SBATCH --time=12:00:00
-#SBATCH --mem=48G
-#SBATCH --cpus-per-task=8
+#SBATCH --mem=28G
+#SBATCH --cpus-per-task=2
 
 # =============================================================================
 # MI Analysis Phase 1: Full Diagnostic Suite
