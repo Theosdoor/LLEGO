@@ -60,22 +60,36 @@ echo "=============================================="
 
 # Model to use (Llama 3.1 8B in 4-bit quantization fits on 11GB Turing GPUs)
 MODEL="meta-llama/Llama-3.1-8B-Instruct"
-# Use 4-bit quantization for 11GB GPUs, remove flag for larger GPUs
+
+# CRITICAL: Use 4-bit quantization for 3-5x speedup!
+# - WITH quantization: ~2-3 min/crossover, ~5GB VRAM
+# - WITHOUT quantization: ~14 min/crossover, ~16GB VRAM (requires CPU offloading)
 QUANTIZATION="--load-in-4bit"
+
+# Experiment parameters
+# FAST MODE (testing): 5 crossovers × 2 datasets × 2 seeds = ~2 hours
+# FULL MODE (paper): 15 crossovers × 3 datasets × 3 seeds = ~18 hours
+N_CROSSOVERS="5"  # Change to 15 for full run
+DATASETS="breast heart-statlog"  # Add "diabetes" for full run
+SEEDS="0 1"  # Add "2" for full run
 
 # =============================================================================
 # Experiment 1: Semantic Ablation
 # =============================================================================
 echo ""
 echo "=============================================="
-echo "Running Experiment 1: Semantic Ablation Study"
+echo "Experiment 1: Semantic Ablation Study"
+echo "=============================================="
+echo "Config: $N_CROSSOVERS crossovers × ${DATASETS} × seeds ${SEEDS}"
+echo "Quantization: $QUANTIZATION"
+echo "Expected time: ~2-3 hours (FAST mode) or ~18 hours (FULL mode)"
 echo "=============================================="
 
 python mi_analysis/semantic_ablation.py \
     --model $MODEL \
-    --datasets breast heart-statlog diabetes \
-    --n-crossovers 15 \
-    --seeds 0 1 2 \
+    --datasets $DATASETS \
+    --n-crossovers $N_CROSSOVERS \
+    --seeds $SEEDS \
     --device cuda \
     --output-dir mi_analysis/results/phase1 \
     $QUANTIZATION
@@ -88,9 +102,11 @@ echo "=============================================="
 echo "Running Experiment 2: Fitness Attention Analysis"
 echo "=============================================="
 
+N_FITNESS_SAMPLES="15"  # Change to 30 for full run
+
 python mi_analysis/fitness_attention.py \
     --model $MODEL \
-    --n-samples 30 \
+    --n-samples $N_FITNESS_SAMPLES \
     --device cuda \
     --output-dir mi_analysis/results/phase1 \
     $QUANTIZATION

@@ -215,7 +215,9 @@ class LLMInterface:
             }
             
             if self.load_in_4bit:
-                logger.info("Loading model in 4-bit quantization")
+                logger.info("="*60)
+                logger.info("USING 4-BIT QUANTIZATION (Memory: ~5GB, Speed: FAST)")
+                logger.info("="*60)
                 quantization_config = BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_compute_dtype=torch.bfloat16,
@@ -224,12 +226,18 @@ class LLMInterface:
                 )
                 model_kwargs["quantization_config"] = quantization_config
             elif self.load_in_8bit:
-                logger.info("Loading model in 8-bit quantization")
+                logger.info("="*60)
+                logger.info("USING 8-BIT QUANTIZATION (Memory: ~8GB, Speed: MEDIUM)")
+                logger.info("="*60)
                 quantization_config = BitsAndBytesConfig(
                     load_in_8bit=True,
                 )
                 model_kwargs["quantization_config"] = quantization_config
             else:
+                logger.warning("="*60)
+                logger.warning("NO QUANTIZATION - Using bfloat16 (Memory: ~16GB, Speed: SLOW)")
+                logger.warning("Add --load-in-4bit flag for 3-5x speedup!")
+                logger.warning("="*60)
                 model_kwargs["torch_dtype"] = torch.bfloat16
             
             self.model = AutoModelForCausalLM.from_pretrained(
