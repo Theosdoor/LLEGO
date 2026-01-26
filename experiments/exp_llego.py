@@ -1,10 +1,15 @@
 import os
 import pickle
 import warnings
+from pathlib import Path
 
 import hydra
 import wandb
 import yaml
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 warnings.simplefilter("ignore", category=FutureWarning)
 warnings.simplefilter("ignore", category=UserWarning)
