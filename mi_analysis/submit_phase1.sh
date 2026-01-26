@@ -46,8 +46,7 @@ source .venv/bin/activate
 # Set cache directories (UPDATE THESE for your cluster)
 CACHE_BASE="${CACHE_BASE:-/home2/nchw73/.cache}"
 export HF_HOME="$CACHE_BASE/huggingface"
-export HF_DATASETS_CACHE="$CACHE_BASE/huggingface/datasets"
-mkdir -p $HF_HOME $HF_DATASETS_CACHE
+mkdir -p $HF_HOME
 
 # Print job info
 echo "=============================================="
