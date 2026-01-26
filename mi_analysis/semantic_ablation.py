@@ -164,12 +164,16 @@ class LLMInterface:
         use_nnsight: bool = False,
         device: str = "cuda",
         cache_dir: Optional[Path] = None,
+        load_in_8bit: bool = False,
+        load_in_4bit: bool = False,
     ):
         self.model_name = model_name
         self.use_local = use_local
         self.use_nnsight = use_nnsight
         self.device = device
         self.cache_dir = cache_dir
+        self.load_in_8bit = load_in_8bit
+        self.load_in_4bit = load_in_4bit
         
         self.model = None
         self.tokenizer = None
@@ -183,25 +187,53 @@ class LLMInterface:
         
         if self.use_nnsight:
             from nnsight import LanguageModel
+            
+            # nnsight doesn't support quantization directly, use smaller model
+            if self.load_in_8bit or self.load_in_4bit:
+                logger.warning("nnsight doesn't support quantization, loading in bfloat16")
+            
             self.model = LanguageModel(
                 self.model_name,
                 device_map=self.device,
-                torch_dtype=torch.bfloat16,
+                dtype=torch.bfloat16,
                 cache_dir=self.cache_dir,
             )
             self.tokenizer = self.model.tokenizer
         else:
-            from transformers import AutoModelForCausalLM, AutoTokenizer
+            from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
             
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name,
                 cache_dir=self.cache_dir,
             )
+            
+            # Setup quantization if requested
+            model_kwargs = {
+                "device_map": "auto",
+                "cache_dir": self.cache_dir,
+            }
+            
+            if self.load_in_4bit:
+                logger.info("Loading model in 4-bit quantization")
+                quantization_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_compute_dtype=torch.bfloat16,
+                    bnb_4bit_use_double_quant=True,
+                    bnb_4bit_quant_type="nf4",
+                )
+                model_kwargs["quantization_config"] = quantization_config
+            elif self.load_in_8bit:
+                logger.info("Loading model in 8-bit quantization")
+                quantization_config = BitsAndBytesConfig(
+                    load_in_8bit=True,
+                )
+                model_kwargs["quantization_config"] = quantization_config
+            else:
+                model_kwargs["torch_dtype"] = torch.bfloat16
+            
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
-                device_map=self.device,
-                torch_dtype=torch.bfloat16,
-                cache_dir=self.cache_dir,
+                **model_kwargs,
             )
         
         if self.tokenizer.pad_token is None:
@@ -627,6 +659,10 @@ def main():
                         help="Device to use")
     parser.add_argument("--dry-run", action="store_true",
                         help="Run without LLM (for testing)")
+    parser.add_argument("--load-in-8bit", action="store_true",
+                        help="Load model in 8-bit quantization (saves VRAM)")
+    parser.add_argument("--load-in-4bit", action="store_true",
+                        help="Load model in 4-bit quantization (saves more VRAM)")
     
     args = parser.parse_args()
     
@@ -670,6 +706,8 @@ def main():
             use_nnsight=args.use_nnsight,
             device=config.device,
             cache_dir=config.cache_dir,
+            load_in_8bit=args.load_in_8bit,
+            load_in_4bit=args.load_in_4bit,
         )
         
         # Run experiment

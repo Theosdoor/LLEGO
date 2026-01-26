@@ -375,6 +375,10 @@ def main():
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--use-nnsight", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--load-in-8bit", action="store_true",
+                        help="Load model in 8-bit quantization")
+    parser.add_argument("--load-in-4bit", action="store_true",
+                        help="Load model in 4-bit quantization")
     
     args = parser.parse_args()
     
@@ -414,6 +418,8 @@ def main():
             use_nnsight=args.use_nnsight,
             device=config.device,
             cache_dir=config.cache_dir,
+            load_in_8bit=args.load_in_8bit,
+            load_in_4bit=args.load_in_4bit,
         )
         
         results = run_fitness_attention_experiment(config, llm)

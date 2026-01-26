@@ -46,9 +46,8 @@ source .venv/bin/activate
 # Set cache directories (UPDATE THESE for your cluster)
 CACHE_BASE="${CACHE_BASE:-/home2/nchw73/.cache}"
 export HF_HOME="$CACHE_BASE/huggingface"
-export TRANSFORMERS_CACHE="$CACHE_BASE/huggingface/transformers"
 export HF_DATASETS_CACHE="$CACHE_BASE/huggingface/datasets"
-mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE
+mkdir -p $HF_HOME $HF_DATASETS_CACHE
 
 # Print job info
 echo "=============================================="
@@ -60,8 +59,10 @@ echo "GPU: $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader)"
 echo "Start time: $(date)"
 echo "=============================================="
 
-# Model to use (Llama 3.1 8B fits on Turing GPUs with ~16GB VRAM)
+# Model to use (Llama 3.1 8B in 4-bit quantization fits on 11GB Turing GPUs)
 MODEL="meta-llama/Llama-3.1-8B-Instruct"
+# Use 4-bit quantization for 11GB GPUs, remove flag for larger GPUs
+QUANTIZATION="--load-in-4bit"
 
 # =============================================================================
 # Experiment 1: Semantic Ablation
@@ -77,7 +78,8 @@ python mi_analysis/semantic_ablation.py \
     --n-crossovers 15 \
     --seeds 0 1 2 \
     --device cuda \
-    --output-dir mi_analysis/results/phase1
+    --output-dir mi_analysis/results/phase1 \
+    $QUANTIZATION
 
 # =============================================================================
 # Experiment 2: Fitness Attention Analysis
@@ -91,7 +93,8 @@ python mi_analysis/fitness_attention.py \
     --model $MODEL \
     --n-samples 30 \
     --device cuda \
-    --output-dir mi_analysis/results/phase1
+    --output-dir mi_analysis/results/phase1 \
+    $QUANTIZATION
 
 # =============================================================================
 # Summary

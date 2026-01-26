@@ -5,8 +5,8 @@
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
 #SBATCH --time=8:00:00
-#SBATCH --mem=32G
-#SBATCH --cpus-per-task=4
+#SBATCH --mem=28G
+#SBATCH --cpus-per-task=2
 
 # =============================================================================
 # Semantic Ablation Experiment - MI Analysis Phase 1

@@ -13,7 +13,7 @@ class MIConfig:
     # Model settings
     model_name: str = "meta-llama/Llama-3.1-8B-Instruct"
     device: str = "cuda"
-    torch_dtype: str = "bfloat16"
+    dtype: str = "bfloat16"  # Use dtype instead of torch_dtype (deprecated)
     
     # Analysis settings
     n_samples: int = 50  # Number of crossover prompts to analyze
