@@ -39,15 +39,16 @@ class LLMOutputParser:
     def _track_token_usage(self, llm_responses: List) -> int:
         """
         Track the token usage in the responses
+        Compatible with OpenAI SDK v1.x (Pydantic objects)
         """
-        tokens_used = sum(
-            [
-                response["usage"]["total_tokens"]
-                for response in llm_responses
-                if response is not None
-            ]
-        )
-        assert isinstance(tokens_used, int)
+        tokens_used = 0
+        for response in llm_responses:
+            if response is not None:
+                # Handle both dict (old style) and Pydantic object (new style)
+                if hasattr(response, 'usage'):
+                    tokens_used += response.usage.total_tokens
+                elif isinstance(response, dict) and "usage" in response:
+                    tokens_used += response["usage"]["total_tokens"]
         return tokens_used
 
     def _parse_to_dict(self, serialized_offspring: str) -> Union[Dict, None]:
@@ -92,6 +93,7 @@ class LLMOutputParser:
     ) -> Tuple[List[List], List[List], int, int]:
         """
         Parse the output of LLM API call to a list of dictionaries, list of logprobs and number of valid offsprings
+        Compatible with OpenAI SDK v1.x (Pydantic objects)
         """
         num_valid_offspring = 0
         num_generated_offspring = 0
@@ -101,15 +103,25 @@ class LLMOutputParser:
         for response_i, response in enumerate(llm_responses):
             if response is None:
                 continue
-            n_generations_per_prompt = len(response["choices"])
+            
+            # Handle both dict (old style) and Pydantic object (new style)
+            choices = response.choices if hasattr(response, 'choices') else response["choices"]
+            n_generations_per_prompt = len(choices)
+            
             for generation_j in range(n_generations_per_prompt):
                 num_generated_offspring += 1
-                if gpt4o:
-                    serialized_offspring = response["choices"][generation_j]["message"][
-                        "content"
-                    ]
+                choice = choices[generation_j]
+                
+                # Extract content - new SDK uses Pydantic objects
+                if hasattr(choice, 'message'):
+                    serialized_offspring = choice.message.content
+                elif isinstance(choice, dict):
+                    if "message" in choice:
+                        serialized_offspring = choice["message"]["content"]
+                    else:
+                        serialized_offspring = choice["text"]
                 else:
-                    serialized_offspring = response["choices"][generation_j]["text"]
+                    continue
 
                 offspring_dict = self._parse_to_dict(serialized_offspring)
 
@@ -123,21 +135,16 @@ class LLMOutputParser:
                     list_offsprings[response_i].append(offspring_dict)
 
                     # add the logprob to the list of logprobs
-                    if gpt4o:
-                        logprob = sum(
-                            [
-                                x.logprob
-                                for x in response["choices"][generation_j]["logprobs"][
-                                    "content"
-                                ]
-                            ]
-                        )
-                    else:
-                        logprob = sum(
-                            response["choices"][generation_j]["logprobs"][
-                                "token_logprobs"
-                            ]
-                        )
+                    logprob = 0.0
+                    if hasattr(choice, 'logprobs') and choice.logprobs is not None:
+                        if hasattr(choice.logprobs, 'content') and choice.logprobs.content:
+                            logprob = sum([x.logprob for x in choice.logprobs.content])
+                    elif isinstance(choice, dict) and "logprobs" in choice and choice["logprobs"]:
+                        if gpt4o:
+                            logprob = sum([x.logprob for x in choice["logprobs"]["content"]])
+                        else:
+                            logprob = sum(choice["logprobs"]["token_logprobs"])
+                    
                     list_logprobs[response_i].append(logprob)
 
                     num_valid_offspring += 1
@@ -161,6 +168,7 @@ class LLMOutputParser:
     ) -> Tuple[List[dict], int, int]:
         """
         Parse the output of LLM API call to a list of dictionaries and number of valid offsprings
+        Compatible with OpenAI SDK v1.x (Pydantic objects)
         """
         num_valid_offspring = 0
         num_generated_offspring = 0
@@ -169,12 +177,22 @@ class LLMOutputParser:
         for response_i, response in enumerate(llm_responses):
             if response is None:
                 continue
-            n_generations_per_prompt = len(response["choices"])
+            
+            # Handle both dict (old style) and Pydantic object (new style)
+            choices = response.choices if hasattr(response, 'choices') else response["choices"]
+            n_generations_per_prompt = len(choices)
+            
             for generation_j in range(n_generations_per_prompt):
                 num_generated_offspring += 1
-                serialized_offspring = response["choices"][generation_j]["message"][
-                    "content"
-                ]
+                choice = choices[generation_j]
+                
+                # Extract content - new SDK uses Pydantic objects
+                if hasattr(choice, 'message'):
+                    serialized_offspring = choice.message.content
+                elif isinstance(choice, dict) and "message" in choice:
+                    serialized_offspring = choice["message"]["content"]
+                else:
+                    continue
 
                 offspring_dict = self._parse_to_dict(serialized_offspring)
                 if offspring_dict is None:

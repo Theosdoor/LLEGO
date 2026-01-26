@@ -17,23 +17,18 @@ Official code repository for our **ICLR'25** paper [Decision Tree Induction Thro
 ## 1. Setup
 ---
 
-1. Create and activate a new environment with conda (with `Python 3.9` or newer).
+1. Setup with uv (creates venv and downloads requirements)
 
 ```shell
-conda create -n llego python=3.9
-conda activate llego
-```
-2. Install the necesary requirements (for LLEGO).
-```shell
-pip install -e .
+uv sync
 ```
 
-3. Install the external libraries (for the baselines).
+2. Install the external libraries (for the baselines).
  ```shell
 bash install_external.sh
 ```
 
-4. Our code allows for logging via wandb. If you want to use it, make sure it is correctly configured on your machine by following [this guide](https://docs.wandb.ai/quickstart). 
+3. Our code allows for logging via wandb. If you want to use it, make sure it is correctly configured on your machine by following [this guide](https://docs.wandb.ai/quickstart). 
 
 
 ## 2. Reproducing Results

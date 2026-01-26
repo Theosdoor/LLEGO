@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Callable, Dict, List, Optional, Tuple
 
-from langchain.prompts import FewShotPromptTemplate, PromptTemplate
+from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 
 from llego.custom.parsing_to_string import parse_dict_to_string
 from llego.custom.tree_validation import validate_individual
