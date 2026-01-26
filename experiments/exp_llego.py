@@ -5,6 +5,7 @@ from pathlib import Path
 
 import hydra
 import wandb
+import weave
 import yaml
 from dotenv import load_dotenv
 
@@ -24,6 +25,11 @@ from llego.custom.llm_output_parser import LLMOutputParser
 from llego.llego_algorithm import Algorithm
 from utils.data_utils import get_data, preprocess_data
 from utils.wandb import maybe_initialize_wandb
+
+# Configure logging levels - suppress verbose HTTP/API logs
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
+logging.getLogger("openai._base_client").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 

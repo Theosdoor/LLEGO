@@ -4,12 +4,13 @@
 #SBATCH --error=slurm_%j.err
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
-#SBATCH --time=24:00:00
+#SBATCH --time=5:00:00
 #SBATCH --mem=16G
 
 
 # 1. Go to your folder
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
+source .venv/bin/activate
 
 # 2. Debug: Job info
 echo "Job running on node: $(hostname)"
