@@ -242,11 +242,11 @@ def cart_bootstrap_initialization(
     logger.info(f"Initializing population with CART-bootstrap (N={pop_size}, max_depth={max_depth})")
     
     # Create Random Forest to generate diverse population
-    # max_samples=0.5 means each tree sees 50% of training data (bootstrap)
+    # max_samples=0.25 means each tree sees 25% of training data (matching LLEGO paper)
     rf = RandomForestClassifier(
         n_estimators=pop_size,
         max_depth=max_depth,
-        max_samples=0.5,  # Key parameter from LLEGO
+        max_samples=0.25,  # Key parameter from LLEGO paper
         random_state=seed,
         bootstrap=True,
     )

@@ -161,11 +161,11 @@ def sklearn_tree_to_dict(sk_tree, feature_names, node_id=0):
 
 
 def cart_init(X_train, y_train, feature_names, pop_size, max_depth, seed):
-    """CART-bootstrapped initialization (high quality)."""
+    """CART-bootstrapped initialization (matching LLEGO paper: 25% of training data)."""
     rf = RandomForestClassifier(
         n_estimators=pop_size,
         max_depth=max_depth,
-        max_samples=0.5,
+        max_samples=0.25,  # LLEGO paper uses 25%
         random_state=seed,
         bootstrap=True,
     )
