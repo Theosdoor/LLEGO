@@ -1,4 +1,10 @@
+---
+applyTo: '**'
+---
+
 # Repository Guidelines
+
+**NOTE:** These guidelines apply to all files in this repository and should be followed by all AI assistants.
 
 ## Project Structure & Module Organization
 - `src/`: primary library/package code.

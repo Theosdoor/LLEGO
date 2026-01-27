@@ -1,0 +1,68 @@
+======================================================================
+PHASE 1 ANALYSIS REPORT: Mechanistic Investigation of LLEGO
+======================================================================
+Generated: 2026-01-27 15:19:13
+
+## KEY FINDINGS
+----------------------------------------------------------------------
+
+### Finding 1: Semantic Names Do NOT Help (Surprising!)
+
+| Metric | Semantic | Arbitrary | Difference |
+|--------|----------|-----------|------------|
+| Parse Rate | 90.0% | 95.0% | -5.0% |
+| Avg Depth | 2.89 | 3.26 | -0.37 |
+| Avg Size | 9.89 | 11.42 | -1.53 |
+| Avg Balance | 0.68 | 0.64 | - |
+
+**Interpretation:** Arbitrary names (X1, X2) perform EQUAL OR BETTER!
+This is a key insight: LLM contribution is STRUCTURAL, not SEMANTIC.
+
+### Finding 2: LLM Uses Fitness Information
+
+- Fitness Swap Test: 2 valid trials
+- Trees identical when fitness swapped: 0.0%
+- Interpretation: LLM uses fitness information
+
+**Conclusion:** LLM DOES use fitness values to guide crossover.
+
+### Finding 3: Learned Structural Prior
+
+LLM-generated trees exhibit consistent structural preferences:
+
+| Parameter | Mean | Std |
+|-----------|------|-----|
+| Depth | 3.08 | 0.88 |
+| Size (nodes) | 10.68 | 3.17 |
+| Balance | 0.75 | 0.26 |
+| Feature Reuse | 0.88 | 0.20 |
+
+These parameters will be used to guide crossover in Phase 3.
+
+## IMPLICATIONS FOR PHASE 2 (Distillation)
+----------------------------------------------------------------------
+
+Based on Phase 1 findings:
+
+1. **FOCUS ON STRUCTURAL PRIORS** (not semantic knowledge)
+   - Semantic names don't improve performance
+   - LLM's value comes from tree structure preferences
+
+2. **DISTILL THE STRUCTURAL PRIOR**
+   - Use learned depth/size/balance preferences
+   - Score candidate crossover children by structural prior
+   - No LLM calls needed at runtime!
+
+3. **SIMPLIFIED APPROACH**
+   - Originally planned: Semantic Graph + Structural Prior
+   - Revised plan: Structural Prior ONLY (simpler, empirically justified)
+
+## NEXT STEPS
+----------------------------------------------------------------------
+
+1. [x] Analyze Phase 1 results (this report)
+2. [ ] Implement DistilledEvolution using structural prior
+3. [ ] Run validation: LLEGO vs Distilled-LLEGO vs GATree
+4. [ ] Generate figures and write report
+
+======================================================================
