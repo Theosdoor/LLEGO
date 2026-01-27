@@ -1,5 +1,13 @@
 uv.lock
 *.err
+
+# Analysis results - ignore raw outputs but keep summaries
+analysis/results/**/*.pkl
+analysis/results/**/*.zip
+analysis/results/**/gatree_search_populations_*.pkl
+analysis/results/**/gatree_hof_*.pkl
+# Keep JSON result files (they're small and useful)
+# Keep artifacts/ summaries (CSV files)
 analysis/results/
 
 # Byte-compiled / optimized / DLL files

@@ -1,6 +1,7 @@
 import logging
 from typing import Callable, Dict, List
 
+import numpy as np
 from sklearn.ensemble import (  # type: ignore
     RandomForestClassifier,
     RandomForestRegressor,
@@ -21,6 +22,7 @@ class PopulationInitialization:
 
         self.INIT_FUNCTIONS: Dict[str, Callable[[int], List[Individual]]] = {
             "cart": self.initialize_with_cart,
+            "random": self.initialize_with_random,
         }
 
         self.pop_init_f = pop_init_f
@@ -113,8 +115,51 @@ class PopulationInitialization:
 
         return population
 
-    def initialize_with_random(self):
+    def initialize_with_random(self, init_pop_size: int) -> List[Individual]:
         """
-        Initialize the population with random trees
+        Initialize the population with random trees.
+        Used for testing/ablation when CART initialization fails.
         """
-        pass
+        from gatree.tree.node import Node
+        from llego.utils.tree import convert_gatree_to_individual
+        
+        population = []
+        feature_names = self.meta_data["attribute_names"]
+        
+        X_train = self.data["X_train"]
+        y_train = self.data["y_train"]
+        
+        # Setup attribute values for random tree generation
+        att_indexes = list(range(X_train.shape[1]))
+        att_values = {
+            i: [(min_val + max_val) / 2
+                for min_val, max_val in zip(
+                    sorted(X_train.iloc[:, i].unique())[:-1],
+                    sorted(X_train.iloc[:, i].unique())[1:],
+                )]
+            for i in range(X_train.shape[1])
+        }
+        att_values[-1] = sorted(np.unique(y_train))
+        class_count = len(att_values[-1])
+        
+        # Generate random trees using GATree's native method
+        node = Node()
+        for _ in range(init_pop_size):
+            tree = node.make_node(
+                max_depth=self.max_depth,
+                random=np.random,  # Pass numpy random module
+                att_indexes=att_indexes,
+                att_values=att_values,
+                class_count=class_count,
+            )
+            
+            try:
+                # Convert GATree node to our Individual representation
+                individual = convert_gatree_to_individual(tree, feature_names)
+                validate_individual(individual, max_depth=self.max_depth)
+                population.append(individual)
+            except Exception as e:
+                logger.info(f"Error validating random tree: {e}")
+        
+        return population
+

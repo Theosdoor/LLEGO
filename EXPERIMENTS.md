@@ -80,3 +80,50 @@ done
 **Conclusion:** Changing max_samples made **no significant difference**. The discrepancy with paper is likely due to the numpy bug causing 0 valid trees → purely random initialization.
 
 ---
+
+## 2026-01-27: GATree with Forced Random Initialization (Bug Reproduction)
+
+**Objective:** Test if forcing random initialization (simulating the bug) reproduces paper's results
+
+**Hypothesis:** The paper's experiments ran with the numpy bug causing CART initialization to fail, resulting in purely random tree initialization instead of CART-bootstrapped trees.
+
+**Command:**
+```bash
+cd experiments && for seed in 0 1 2 3 4; do
+  PYTHONPATH=../src uv run python exp_gatree.py dataset=heart-statlog max_depth=3 seed=$seed log_wandb=False exp_name=test_random pop_init.pop_init_f=random
+done
+```
+
+**Results (heart-statlog, depth=3, random initialization):**
+
+| Seed | Test BA |
+|------|---------|
+| 0    | 0.709   |
+| 1    | 0.636   |
+| 2    | 0.654   |
+| 3    | 0.640   |
+| 4    | 0.667   |
+| **Mean** | **0.661** |
+| **Std** | **0.026** |
+
+**Paper reports:** GATree = 0.669 (std 0.031)
+
+**Outputs:** `experiments/results/test_random/3/heart-statlog/GATREE/`
+
+---
+
+## Summary: Initialization Method Comparison
+
+| Configuration | Mean Test BA | Std | Notes |
+|---------------|--------------|-----|-------|
+| CART init (bug fixed) | 0.720 | - | With fixed numpy int conversion |
+| **Random init (simulating bug)** | **0.661** | **0.026** | Forced random trees |
+| **Paper GATree** | **0.669** | **0.031** | Original reported result |
+
+**CONCLUSION CONFIRMED:** 
+- Random initialization (0.661 ± 0.026) matches paper's GATree (0.669 ± 0.031) within statistical error
+- CART-initialized GATree (0.720) performs ~5-6% better than random
+- **The paper's GATree experiments almost certainly ran with the numpy bug**, causing 0 valid CART trees → purely random initialization
+- This explains the ~5% gap between our fixed implementation and paper results
+
+---
