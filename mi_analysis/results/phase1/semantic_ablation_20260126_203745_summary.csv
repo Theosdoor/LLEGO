@@ -1,0 +1,41 @@
+condition,prompt_length,response_length,input_tokens,output_tokens,tree_parsed_successfully,tree_depth,tree_size,tree_balance,features_used,n_features_used,dataset,seed,crossover_idx
+semantic,2168,1989,690,512,True,4.0,15.0,1.0,"['mean smoothness', 'mean perimeter', 'mean radius', 'mean fractal dimension', 'mean area', 'mean texture']",6.0,breast,0,0
+arbitrary,1699,1197,665,512,True,3.0,9.0,0.6,"['X4', 'X1', 'X3', 'X2']",4.0,breast,0,0
+semantic,2168,1806,690,512,True,5.0,13.0,0.09090909090909091,"['mean area', 'mean texture', 'mean perimeter', 'mean radius']",4.0,breast,0,1
+arbitrary,1699,2098,665,512,True,3.0,13.0,0.7142857142857143,"['X6', 'X5', 'X1', 'X3', 'X4', 'X2']",6.0,breast,0,1
+semantic,2168,1486,690,512,True,3.0,11.0,0.42857142857142855,"['mean smoothness', 'mean perimeter', 'mean radius', 'mean area', 'mean texture']",5.0,breast,0,2
+arbitrary,1699,1518,665,512,True,4.0,15.0,1.0,"['X4', 'X1', 'X3', 'X2']",4.0,breast,0,2
+semantic,2165,1494,690,512,True,3.0,9.0,0.6,"['mean area', 'mean texture', 'mean perimeter', 'mean radius']",4.0,breast,0,3
+arbitrary,1699,2019,665,512,True,3.0,13.0,0.7142857142857143,"['X6', 'X5', 'X1', 'X3', 'X4', 'X2']",6.0,breast,0,3
+semantic,2168,1921,690,512,True,3.0,11.0,0.42857142857142855,"['mean area', 'mean texture', 'mean perimeter', 'mean radius']",4.0,breast,0,4
+arbitrary,1699,1408,665,512,True,4.0,15.0,0.5555555555555556,"['X1', 'X4', 'X2', 'X3']",4.0,breast,0,4
+semantic,2165,673,690,223,True,3.0,11.0,1.0,"['mean smoothness', 'mean perimeter', 'mean radius', 'mean area', 'mean texture']",5.0,breast,1,0
+arbitrary,1699,1876,665,512,True,3.0,9.0,0.6,"['X4', 'X1', 'X3', 'X2']",4.0,breast,1,0
+semantic,2168,669,690,223,True,3.0,11.0,0.42857142857142855,"['mean smoothness', 'mean perimeter', 'mean radius', 'mean area', 'mean texture']",5.0,breast,1,1
+arbitrary,1699,1428,665,512,True,4.0,17.0,0.7777777777777778,"['X6', 'X5', 'X1', 'X3', 'X4', 'X2']",6.0,breast,1,1
+semantic,1925,1997,614,512,True,1.0,3.0,1.0,['mean perimeter'],1.0,breast,1,2
+arbitrary,1475,1521,589,512,True,3.0,7.0,0.2,"['X1', 'X3', 'X2']",3.0,breast,1,2
+semantic,1925,1350,614,512,True,0.0,1.0,1.0,[],0.0,breast,1,3
+arbitrary,1475,1780,589,512,True,3.0,9.0,0.6,"['X1', 'X3', 'X2']",3.0,breast,1,3
+semantic,2165,1454,690,512,True,3.0,11.0,1.0,"['mean smoothness', 'mean perimeter', 'mean radius', 'mean area', 'mean texture']",5.0,breast,1,4
+arbitrary,1699,1870,665,512,True,3.0,11.0,1.0,"['X5', 'X1', 'X3', 'X4', 'X2']",5.0,breast,1,4
+semantic,1538,1633,507,512,True,4.0,11.0,0.1111111111111111,"['sex', 'chest_pain_type', 'age', 'resting_blood_pressure']",4.0,heart-statlog,0,0
+arbitrary,1308,1714,478,512,False,,,,,,heart-statlog,0,0
+semantic,1538,1382,507,512,True,1.0,3.0,1.0,['age'],1.0,heart-statlog,0,1
+arbitrary,1308,1431,478,512,True,4.0,13.0,0.3333333333333333,"['X6', 'X5', 'X1', 'X3', 'X4', 'X2']",6.0,heart-statlog,0,1
+semantic,1538,1608,507,512,True,4.0,13.0,0.3333333333333333,"['sex', 'chest_pain_type', 'age', 'resting_blood_pressure']",4.0,heart-statlog,0,2
+arbitrary,1308,1800,478,512,True,3.0,11.0,0.42857142857142855,"['X5', 'X1', 'X3', 'X4', 'X2']",5.0,heart-statlog,0,2
+semantic,1526,1405,504,512,False,,,,,,heart-statlog,0,3
+arbitrary,1308,1869,478,512,True,3.0,13.0,0.7142857142857143,"['X5', 'X1', 'X3', 'X4', 'X2']",5.0,heart-statlog,0,3
+semantic,1538,1653,507,512,True,3.0,11.0,1.0,"['serum_cholesterol', 'chest_pain_type', 'sex', 'age', 'resting_blood_pressure']",5.0,heart-statlog,0,4
+arbitrary,1308,1866,478,512,True,3.0,9.0,0.14285714285714285,"['X4', 'X1', 'X3', 'X2']",4.0,heart-statlog,0,4
+semantic,1526,1920,504,512,True,3.0,11.0,0.42857142857142855,"['serum_cholesterol', 'chest_pain_type', 'sex', 'age', 'resting_blood_pressure']",5.0,heart-statlog,1,0
+arbitrary,1308,1877,478,512,True,3.0,11.0,1.0,"['X5', 'X1', 'X3', 'X4', 'X2']",5.0,heart-statlog,1,0
+semantic,1538,1546,507,512,True,3.0,11.0,0.42857142857142855,"['max_heart_rate', 'chest_pain_type', 'exercise_induced_angina', 'sex', 'age']",5.0,heart-statlog,1,1
+arbitrary,1308,1537,478,512,True,4.0,11.0,0.1111111111111111,"['X5', 'X1', 'X3', 'X4', 'X2']",5.0,heart-statlog,1,1
+semantic,1281,1993,426,512,True,3.0,11.0,1.0,"['sex', 'chest_pain_type', 'age']",3.0,heart-statlog,1,2
+arbitrary,1084,1625,402,512,True,3.0,9.0,0.6,"['X1', 'X3', 'X2']",3.0,heart-statlog,1,2
+semantic,1281,1364,426,512,False,,,,,,heart-statlog,1,3
+arbitrary,1084,1624,402,512,True,3.0,11.0,1.0,"['X1', 'X4', 'X2', 'X3']",4.0,heart-statlog,1,3
+semantic,1526,1127,504,512,True,3.0,11.0,1.0,"['serum_cholesterol', 'chest_pain_type', 'sex', 'age', 'resting_blood_pressure']",5.0,heart-statlog,1,4
+arbitrary,1308,1575,478,512,True,3.0,11.0,1.0,"['X5', 'X1', 'X3', 'X4', 'X2']",5.0,heart-statlog,1,4
