@@ -35,7 +35,8 @@ def parse_cart_to_dict(
                 if task_type == "regression":
                     return {"value": f"{values[0][0]:.{precision}f}"}
                 else:
-                    return {"value": np.argmax(values)}
+                    # Convert to native Python int to avoid ast.literal_eval issues with np.int64
+                    return {"value": int(np.argmax(values))}
 
             else:  # decision node
                 feature = feature_names[tree_.feature[node]]

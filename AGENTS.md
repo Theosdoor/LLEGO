@@ -6,6 +6,40 @@ applyTo: '**'
 
 **NOTE:** These guidelines apply to all files in this repository and should be followed by all AI assistants.
 
+## Original Repository & Paper
+
+**Paper:** "Decision Tree Induction Through LLMs via Semantically-Aware Evolution" (ICLR 2025)
+- Authors: Tennison Liu, Nicolas Huynh, Mihaela van der Schaar (DAMTP, University of Cambridge)
+- OpenReview: https://openreview.net/forum?id=UyhRtB4hjN
+- Paper summary: https://raw.githubusercontent.com/Theosdoor/vanDerSchaarWork/refs/heads/main/context/llego_paper_short.md
+
+**Original Repo:** This repo was forked from the official LLEGO implementation.
+- First commit (original code): `e9bb2fe` - "Update README.md"
+- Initial import: `16042dd` - "Initial commit"
+- Use `git diff e9bb2fe..HEAD` to see all changes made since forking.
+
+**Key Paper Parameters (Table 1, depth=3):**
+- Population: N=25, Generations: G=25
+- LLM: gpt-3.5-turbo version 0301
+- Initialization: CART-bootstrapped on **25%** of training data (paper says 25%)
+- Fitness: Balanced accuracy for classification, MSE for regression  
+- Data split: [0.2, 0.4, 0.4] for train/val/test
+- Datasets: credit-g, diabetes, compas, heart-statlog, liver, breast, vehicle
+
+**Known Issues in Original Repo:**
+1. `max_samples=0.5` in `population_initialization.py` - paper claims 25% but code uses 50%
+2. `np.int64` types in tree dicts break `ast.literal_eval` in `tree_validation.py` (numpy 2.x compatibility issue) - **FIXED**
+3. Tree parsing fails silently, causing 0 valid trees to be initialized
+
+## Experiment Logging
+
+Keep `EXPERIMENTS.md` up to date for reproducibility.
+
+- When adding or modifying experiment scripts, ensure they log results to `EXPERIMENTS.md` on successful completion.
+- When running one-off/manual experiments, either:
+  - Add a short entry to `EXPERIMENTS.md` with the command, outputs directory, and key results.
+  - Or use a logging script if available.
+
 ## Project Structure & Module Organization
 - `src/`: primary library/package code.
   - `llego/`: core LLEGO algorithm implementation and operators.

@@ -75,7 +75,7 @@ class PopulationInitialization:
                 n_estimators=init_pop_size,
                 max_depth=self.max_depth,
                 random_state=self.seed,
-                max_samples=0.5,
+                max_samples=0.25,  # Paper claims 25% bootstrap
             )
             rf.fit(X_train, y_train)
         else:
@@ -83,7 +83,7 @@ class PopulationInitialization:
                 n_estimators=init_pop_size,
                 max_depth=self.max_depth,
                 random_state=self.seed,
-                max_samples=0.5,
+                max_samples=0.25,  # Paper claims 25% bootstrap
             )
             rf.fit(X_train, y_train)
 
