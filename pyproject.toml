@@ -19,7 +19,7 @@ classifiers = [
   "Intended Audience :: Researchers",
   "Topic :: Machine Learning :: Decision Trees",
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
 ]
 dependencies = [
   # Core dependencies matching original paper
@@ -93,7 +93,7 @@ testpaths = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 exclude = [
