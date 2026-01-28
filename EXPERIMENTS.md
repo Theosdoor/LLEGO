@@ -116,14 +116,18 @@ done
 
 | Configuration | Mean Test BA | Std | Notes |
 |---------------|--------------|-----|-------|
-| CART init (bug fixed) | 0.720 | - | With fixed numpy int conversion |
-| **Random init (simulating bug)** | **0.661** | **0.026** | Forced random trees |
+| CART init (bug fixed) | 0.720 | - | With CART-bootstrapped initialization |
+| **Random init** | **0.661** | **0.026** | Pure random tree generation |
 | **Paper GATree** | **0.669** | **0.031** | Original reported result |
 
-**CONCLUSION CONFIRMED:** 
+**KEY FINDING - No Bug, Intentional Configuration:** 
 - Random initialization (0.661 ± 0.026) matches paper's GATree (0.669 ± 0.031) within statistical error
 - CART-initialized GATree (0.720) performs ~5-6% better than random
-- **The paper's GATree experiments almost certainly ran with the numpy bug**, causing 0 valid CART trees → purely random initialization
-- This explains the ~5% gap between our fixed implementation and paper results
+- **Initial hypothesis about numpy bug was INCORRECT**: Tested with numpy 1.23.5 (paper's version) and numpy 1.26.4 - both handle `np.int64` in `ast.literal_eval` without issues
+- **Revised conclusion**: The paper likely **intentionally used random initialization** for GATree rather than CART-bootstrapped initialization
+- Possible reasons: (1) fair comparison across methods, (2) testing pure genetic algorithm, (3) undocumented configuration choice
+- Our CART-initialized version represents a potential **improvement over the baseline** (0.720 vs 0.669)
+
+**Dependencies**: Reverted to exact paper versions - numpy 1.23.5 works correctly with the codebase.
 
 ---

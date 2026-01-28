@@ -3,7 +3,7 @@ name = "llego"
 version = "0.1.0"
 description = "Decision Tree Induction Through LLMs via Semantically-Aware Evolution"
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.12"
 license = {file = "LICENSE"}
 keywords = ["decision tree", "llm", "language model", "machine", "learning", "ai"]
 authors = [
@@ -22,28 +22,35 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
 ]
 dependencies = [
-  "aiohttp>=3.9.4",
-  "bitsandbytes>=0.49.1",
-  "cython>=3.2.4",
-  "dictionary-learning>=0.1.0",
-  "httpx>=0.28.1",
-  "hydra-core>=1.3.2",
-  "ipykernel>=7.1.0",
-  "langchain>=0.2.1",
-  "nnsight>=0.3.7",
-  "numpy>=1.24.0",
-  "omegaconf>=2.3.0",
-  "openai>=1.0.0",
-  "openml>=0.14.2",
-  "optuna>=3.6.1",
+  # Core dependencies matching original paper
+  "aiohttp==3.9.4",
+  "gosdt==0.1.8",
+  "hydra-core==1.3.2",
+  "langchain==0.2.1",
+  "numpy==1.23.5",
+  "omegaconf==2.3.0",
+  "openml==0.14.2",
+  "pytest==8.2.1",
+  "PyYAML==6.0.1",
+  "scikit_learn==1.3.2",
+  "cython",
+
+  # updated dependencies from paper
+  "openai>=1.0.0", 
   "pandas>=1.5.0",
-  "pytest>=8.2.1",
-  "python-dotenv>=1.2.1",
-  "PyYAML>=6.0.1",
-  "scikit_learn>=1.3.2",
-  "transformer-lens>=2.15.4",
   "wandb>=0.17.0",
-  "weave>=0.52.25",
+  "optuna>=3.6.1",
+
+  # Additional compatible dependencies
+  "httpx>=0.28.1",
+  "python-dotenv",
+  "ipykernel>=7.1.0",
+  "bitsandbytes>=0.49.1", # needs python >=3.10 (original proj said 3.9)
+  "nnsight>=0.3.7",
+
+  # need higher numpy version (1.24)
+  #"dictionary-learning>=0.1.0",
+  #"transformer-lens>=2.15.4",
 ]
 
 [tool.setuptools]
