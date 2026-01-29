@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Ensure environment is set up once (uv run will reuse this)
-echo "Setting up environment..."
-uv sync
-echo ""
+# Note: Environment setup (uv sync) and external deps should be done before calling this script
+# This script assumes the environment is already configured
 
 # DATASET_LIST=(credit-g diabetes compas heart-statlog liver breast vehicle)
 DATASET_LIST=(credit-g heart-statlog liver breast vehicle)
@@ -19,7 +17,7 @@ do
         for dataset in "${DATASET_LIST[@]}"
         do
             echo "Running experiment for dataset: $dataset, max_depth: $max_depth, model: $model and exp_name: $exp_name"
-            uv run python exp_gatree.py log_wandb=True dataset=$dataset max_depth=$max_depth exp_name="$exp_name" seed=$seed
+            uv run python experiments/exp_gatree.py log_wandb=True dataset=$dataset max_depth=$max_depth exp_name="$exp_name" seed=$seed
         done
     done
 done

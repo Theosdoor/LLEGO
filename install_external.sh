@@ -24,10 +24,18 @@ echo ""
 echo "===================================="
 echo "Installing gatree..."
 if [ -d "src/external/gatree" ]; then
-  (cd "src/external/gatree" && uv pip install -e .)
-  echo "✓ Finished gatree"
+  cd "src/external/gatree"
+  uv pip install -e . --no-build-isolation
+  if [ $? -eq 0 ]; then
+    echo "✓ Finished gatree"
+  else
+    echo "× Failed to install gatree"
+    exit 1
+  fi
+  cd ../../..
 else
   echo "× Directory src/external/gatree not found"
+  exit 1
 fi
 
 # Install pydl8.5

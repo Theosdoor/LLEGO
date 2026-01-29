@@ -9,7 +9,23 @@
 
 # Navigate to repository
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
-source .venv/bin/activate
+
+# Handle potential stale file handles from network filesystem
+if [ -d ".venv" ]; then
+    echo "Checking existing virtual environment..."
+    # Try to access it, if it fails, remove and recreate
+    if ! ls .venv/lib > /dev/null 2>&1; then
+        echo "Stale venv detected, removing..."
+        rm -rf .venv 2>/dev/null || true
+        # If rm fails, try to force unmount/clear (NFS issue workaround)
+        find .venv -delete 2>/dev/null || true
+    fi
+fi
+
+# Ensure base environment is set up first (uv sync creates/updates .venv)
+echo "Setting up base environment..."
+uv sync
+echo ""
 
 # Install external dependencies (gatree, bonsai-dt, pydl8.5)
 echo "Installing external dependencies..."
@@ -22,8 +38,8 @@ echo "Starting GATree experiments at: $(date)"
 echo "------------------------------------------------------"
 
 # Run all GATree experiments
-cd experiments
-bash run_gatree.sh
+# Stay in root directory so imports work correctly
+bash experiments/run_gatree.sh
 
 echo "------------------------------------------------------"
 echo "GATree experiments completed at: $(date)"

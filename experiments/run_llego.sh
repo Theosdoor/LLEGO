@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Ensure environment is set up once (uv run will reuse this)
-echo "Setting up environment..."
-uv sync
-echo ""
+# Note: Environment setup (uv sync) should be done before calling this script
+# This script assumes the environment is already configured
 
 # DATASET_LIST=(credit-g diabetes compas heart-statlog liver breast vehicle)
 DATASET_LIST=(credit-g heart-statlog liver breast vehicle)
