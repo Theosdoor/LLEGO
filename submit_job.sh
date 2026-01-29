@@ -10,12 +10,10 @@
 
 # 1. Go to your folder
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
-source .venv/bin/activate
 
 # 2. Debug: Job info
 echo "Job running on node: $(hostname)"
 echo "------------------------------------------------------"
 
 # 3. Run the LLEGO experiment
-python3 experiments/exp_llego.py dataset=credit-g max_depth=3 seed=0 exp_name=classification
-python3 analysis/read_results.py
+uv run python sae_project/nb_main.py

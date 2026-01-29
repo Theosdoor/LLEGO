@@ -4,9 +4,9 @@
 # This script assumes the environment is already configured
 
 # DATASET_LIST=(credit-g diabetes compas heart-statlog liver breast vehicle)
-DATASET_LIST=(credit-g heart-statlog liver breast vehicle)
+DATASET_LIST=(credit-g heart-statlog liver breast)
 MAX_DEPTH_LIST=("3")
-SEED_LIST=("0" "1" "2" "3" "4")
+SEED_LIST=("0" "1" "2")
 exp_name='classification'
 
 for max_depth in "${MAX_DEPTH_LIST[@]}"

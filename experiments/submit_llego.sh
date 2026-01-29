@@ -11,18 +11,6 @@
 # Navigate to repository
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
 
-# Handle potential stale file handles from network filesystem
-if [ -d ".venv" ]; then
-    echo "Checking existing virtual environment..."
-    # Try to access it, if it fails, remove and recreate
-    if ! ls .venv/lib > /dev/null 2>&1; then
-        echo "Stale venv detected, removing..."
-        rm -rf .venv 2>/dev/null || true
-        # If rm fails, try to force unmount/clear (NFS issue workaround)
-        find .venv -delete 2>/dev/null || true
-    fi
-fi
-
 # Ensure base environment is set up first
 echo "Setting up base environment..."
 uv sync
