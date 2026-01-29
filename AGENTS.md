@@ -6,6 +6,9 @@ applyTo: '**'
 
 **NOTE:** These guidelines apply to all files in this repository and should be followed by all AI assistants.
 
+**KEY TASK:** https://raw.githubusercontent.com/Theosdoor/vanDerSchaarWork/refs/heads/main/context/vanderscharr_task.md?token=GHSAT0AAAAAADMXCD2DSEYZOESIZS3YAJVS2L3JWGQ
+- ensure we are approaching this task
+
 ## Original Repository & Paper
 
 **Paper:** "Decision Tree Induction Through LLMs via Semantically-Aware Evolution" (ICLR 2025)
