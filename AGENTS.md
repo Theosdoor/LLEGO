@@ -34,6 +34,19 @@ applyTo: '**'
 2. `np.int64` types in tree dicts break `ast.literal_eval` in `tree_validation.py` (numpy 2.x compatibility issue) - **FIXED**
 3. Tree parsing fails silently, causing 0 valid trees to be initialized
 
+## SSH & Remote Compute
+
+For running experiments on the compute cluster, use SSH with SLURM:
+
+**SSH Connection:**
+```bash
+ssh nchw73@ncc1.clients.dur.ac.uk
+```
+- **Working directory:** `~/vanDerSchaarWork/LLEGO`
+- **Job scheduler:** SLURM (use `sbatch`, `squeue`, `scancel`, etc.)
+- **Important:** SSH requires password authentication. Establish one SSH session and reuse it for all commands to avoid repeated password prompts.
+- Key results will likely be saved here, rather than on the local machine.
+
 ## Experiment Logging
 
 Keep `EXPERIMENTS.md` up to date for reproducibility.
