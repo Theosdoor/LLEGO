@@ -1,5 +1,6 @@
 uv.lock
 *.err
+results
 
 # Analysis results - ignore raw outputs but keep summaries
 analysis/results/**/*.pkl
