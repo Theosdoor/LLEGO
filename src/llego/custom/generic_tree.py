@@ -104,7 +104,11 @@ class GenericTree:
                 mean = np.mean(self.value_list)
                 return mean
 
-            return float(self.value)
+            # For classification, return the class label as-is; for regression, convert to float
+            if self.task == "classification":
+                return self.value
+            else:
+                return float(self.value)
         # Else, recursively predict on the children
         else:
             assert self.operator is not None, "The operator should be defined"

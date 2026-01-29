@@ -1,12 +1,12 @@
 mut_llm:
-  model: google/gemini-2.5-flash-lite # paper uses openai/gpt-3.5-turbo-0301
+  model: meta-llama/llama-3.1-8b-instruct # paper uses openai/gpt-3.5-turbo-0301
   api_type: open_ai
   api_base: https://openrouter.ai/api/v1
   api_version: 
   api_key: ${oc.env:OPENROUTER_API_KEY}
 
 xo_llm:
-  model: google/gemini-2.5-flash-lite
+  model: meta-llama/llama-3.1-8b-instruct
   api_type: open_ai
   api_base: https://openrouter.ai/api/v1
   api_version: 

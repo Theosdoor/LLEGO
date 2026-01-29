@@ -25,7 +25,6 @@ dependencies = [
   # Core dependencies matching original paper
   "aiohttp==3.9.4",
   "gosdt==0.1.8",
-  "hydra-core==1.3.2",
   "langchain==0.2.1",
   "numpy==1.23.5",
   "omegaconf==2.3.0",
@@ -40,6 +39,7 @@ dependencies = [
   "pandas>=1.5.0",
   "wandb>=0.17.0",
   "optuna>=3.6.1",
+  "hydra-core>=1.3.2",
 
   # Additional compatible dependencies
   "httpx>=0.28.1",

@@ -9,15 +9,15 @@ if [ ! -d "src/external" ]; then
 fi
 
 # Install bonsai-dt
-echo ""
-echo "===================================="
-echo "Installing bonsai-dt..."
-if [ -d "src/external/bonsai-dt" ]; then
-  (cd "src/external/bonsai-dt" && uv pip install -e .)
-  echo "✓ Finished bonsai-dt"
-else
-  echo "× Directory src/external/bonsai-dt not found"
-fi
+# echo ""
+# echo "===================================="
+# echo "Installing bonsai-dt..."
+# if [ -d "src/external/bonsai-dt" ]; then
+#   (cd "src/external/bonsai-dt" && uv pip install -e .)
+#   echo "✓ Finished bonsai-dt"
+# else
+#   echo "× Directory src/external/bonsai-dt not found"
+# fi
 
 # Install gatree
 echo ""
@@ -31,15 +31,15 @@ else
 fi
 
 # Install pydl8.5
-echo ""
-echo "===================================="
-echo "Installing pydl8.5..."
-if [ -d "src/external/pydl8.5" ]; then
-  (cd "src/external/pydl8.5" && uv pip install -e .)
-  echo "✓ Finished pydl8.5"
-else
-  echo "× Directory src/external/pydl8.5 not found"
-fi
+# echo ""
+# echo "===================================="
+# echo "Installing pydl8.5..."
+# if [ -d "src/external/pydl8.5" ]; then
+#   (cd "src/external/pydl8.5" && uv pip install -e .)
+#   echo "✓ Finished pydl8.5"
+# else
+#   echo "× Directory src/external/pydl8.5 not found"
+# fi
 
 echo ""
 echo "===================================="

@@ -131,3 +131,33 @@ done
 **Dependencies**: Reverted to exact paper versions - numpy 1.23.5 works correctly with the codebase.
 
 ---
+
+## 2026-01-29: Bug Fix - Classification with String Labels
+
+**Issue:** LLEGO algorithm crashed on credit-g dataset with:
+```
+ValueError: could not convert string to float: 'bad'
+```
+
+**Root Cause:** `GenericTree.predict_single()` in `src/llego/custom/generic_tree.py` was calling `float(self.value)` for all tasks, including classification. The original repo only tested with numeric class labels (0/1), but credit-g uses string labels ('bad', 'good').
+
+**Fix Applied:**
+```python
+# Before (line 107):
+return float(self.value)
+
+# After:
+# For classification, return the class label as-is; for regression, convert to float
+if self.task == "classification":
+    return self.value
+else:
+    return float(self.value)
+```
+
+**Files Modified:** `src/llego/custom/generic_tree.py`
+
+**Impact:** LLEGO now correctly handles classification datasets with string class labels. This is a bug fix, not a feature - the original code had an implicit assumption about numeric labels that wasn't documented.
+
+**Verified:** GATree baseline experiments completed successfully on credit-g, heart-statlog, liver, breast, vehicle datasets.
+
+---

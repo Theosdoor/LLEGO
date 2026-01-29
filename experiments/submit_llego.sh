@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=LLEGO
-#SBATCH --output=../slurm/slurm_%j.log
-#SBATCH --error=../slurm/slurm_%j.err
+#SBATCH --output=slurm/slurm_%j.log
+#SBATCH --error=slurm/slurm_%j.err
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
 #SBATCH --time=12:00:00

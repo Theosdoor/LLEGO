@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=GATree_full
-#SBATCH --output=../slurm/slurm_%j.log
-#SBATCH --error=../slurm/slurm_%j.err
+#SBATCH --output=slurm/slurm_%j.log
+#SBATCH --error=slurm/slurm_%j.err
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
 #SBATCH --time=12:00:00
@@ -10,6 +10,11 @@
 # Navigate to repository
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
 source .venv/bin/activate
+
+# Install external dependencies (gatree, bonsai-dt, pydl8.5)
+echo "Installing external dependencies..."
+bash install_external.sh
+echo ""
 
 # Job info
 echo "Job running on node: $(hostname)"
