@@ -9,6 +9,7 @@
 
 # 1. Go to your folder
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
+uv sync
 
 # 2. Debug: Job info
 echo "Job running on node: $(hostname)"
@@ -62,20 +63,20 @@ done
 # Phase 4: Run LLEGO Baseline (optional - requires API key, expensive)
 # Uncomment if you want to run LLEGO for comparison
 # ============================================================================
-# echo "=== Phase 4: Running LLEGO Baseline ==="
-# 
-# for seed in "${SEEDS[@]}"; do
-#     for depth in "${MAX_DEPTHS[@]}"; do
-#         for dataset in "${DATASETS[@]}"; do
-#             echo "LLEGO: dataset=$dataset, depth=$depth, seed=$seed"
-#             .venv/bin/python experiments/exp_llego.py \
-#                 dataset=$dataset \
-#                 max_depth=$depth \
-#                 seed=$seed \
-#                 exp_name=sae_comparison
-#         done
-#     done
-# done
+echo "=== Phase 4: Running LLEGO Baseline ==="
+
+for seed in "${SEEDS[@]}"; do
+    for depth in "${MAX_DEPTHS[@]}"; do
+        for dataset in "${DATASETS[@]}"; do
+            echo "LLEGO: dataset=$dataset, depth=$depth, seed=$seed"
+            .venv/bin/python experiments/exp_llego.py \
+                dataset=$dataset \
+                max_depth=$depth \
+                seed=$seed \
+                exp_name=sae_comparison
+        done
+    done
+done
 
 echo "=== All experiments complete! ==="
 echo "Results saved to:"

@@ -1,0 +1,60 @@
+dataset:
+  categorical_mask:
+  - 0
+  - 1
+  - 1
+  - 0
+  - 0
+  - 1
+  - 1
+  - 0
+  - 1
+  - 0
+  - 1
+  - 1
+  - 1
+  dataset_name: heart-statlog
+  lower_is_better: false
+  search_objective: balanced_accuracy
+  task_description: The task is to classify people as having heart disease or not
+    based on a set of attributes
+exp_name: sae_comparison
+fitness_eval:
+  _partial_: true
+  _target_: llego.custom.fitness_evaluation.FitnessEvaluation
+  complexity_metric: depth
+  fairness_reg: null
+  fitness_metric: balanced_accuracy
+  lower_is_better: false
+gatree:
+  elite_size: 5
+  mutation_probability: 0.2
+  n_iterations: 25
+  pop_size: 25
+  selection_tournament_size: 2
+hof:
+  _target_: llego.operators.hof.HallOfFame
+  hof_metric: balanced_accuracy_val
+  hof_size: null
+  lower_is_better: false
+include_task_semantics: true
+log_wandb: false
+max_depth: 3
+metric_key: balanced_accuracy_train
+metrics_logger:
+  _target_: llego.operators.metrics_logger.MetricsLogger
+  filter:
+    _target_: llego.operators.filter_operator.Filter
+    filter_type: functional_signature
+  log_wandb: false
+pop_init:
+  _partial_: true
+  _target_: llego.custom.population_initialization.PopulationInitialization
+  max_depth: 3
+  pop_init_f: cart
+  seed: 0
+seed: 0
+train_val_test_split:
+- 0.2
+- 0.4
+- 0.4
