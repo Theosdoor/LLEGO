@@ -1,14 +1,15 @@
 """
-Phase 2: Distillation of Structural Priors
+Phase 2: Distillation of Structural and Semantic Priors
 
-Based on Phase 1 findings:
-- SEMANTIC NAMES DON'T HELP (arbitrary actually performs slightly better!)
-- LLM DOES use fitness information (swap test shows different outputs)
-- Focus: Distill STRUCTURAL priors, not semantic knowledge
+Based on Phase 1 findings and LLEGO paper ablations:
+- Structural priors from LLMs help with tree quality
+- Semantic information CAN help (LLEGO paper §5.3 shows LLEGO_no_semantics underperforms)
+- However, repeated LLM calls are expensive - we distill both priors for one-shot use
 
 This module implements:
-1. DistilledStructuralPrior - Captures LLM's implicit tree structure preferences
+1. StructuralPrior - Captures LLM's implicit tree structure preferences
 2. DistilledEvolution - Evolutionary algorithm using distilled priors (no LLM at runtime)
+3. Semantic prior integration - Optional DataFrame of feature similarities (from SAE or embeddings)
 """
 
 import json
@@ -16,7 +17,9 @@ import logging
 import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
+from itertools import combinations
+import pandas as pd
 import random
 import copy
 
@@ -281,30 +284,40 @@ def replace_subtree(tree: dict, old_subtree: dict, new_subtree: dict) -> dict:
 
 class DistilledEvolution:
     """
-    Evolutionary algorithm using distilled structural priors.
+    Evolutionary algorithm using distilled structural and semantic priors.
     
-    Key insight from Phase 1: LLMs contribute structural priors, not semantic knowledge.
-    This class performs crossover guided by those priors WITHOUT any LLM calls.
+    This class performs crossover guided by priors WITHOUT any LLM calls:
+    1. Structural prior - Learned tree shape preferences (depth, balance, etc.)
+    2. Semantic prior - Feature similarity matrix (from SAEs, embeddings, or LLM extraction)
+    
+    The semantic prior encourages trees that use semantically related features together.
     """
     
     def __init__(
         self,
         structural_prior: StructuralPrior,
+        semantic_prior: Optional[pd.DataFrame] = None,
         n_candidates: int = 10,
-        fitness_weight: float = 0.7,
+        fitness_weight: float = 0.5,
         structure_weight: float = 0.3,
+        semantic_weight: float = 0.2,
     ):
         """
         Args:
-            structural_prior: Learned prior from LLM outputs
+            structural_prior: Learned prior from LLM outputs (tree structure preferences)
+            semantic_prior: Optional DataFrame of pairwise feature similarities
+                           (index and columns are feature names, values are 0-1 similarity)
             n_candidates: Number of crossover candidates to generate
             fitness_weight: Weight for fitness in candidate selection
             structure_weight: Weight for structural prior in candidate selection
+            semantic_weight: Weight for semantic coherence in candidate selection
         """
         self.prior = structural_prior
+        self.semantic_prior = semantic_prior
         self.n_candidates = n_candidates
         self.fitness_weight = fitness_weight
         self.structure_weight = structure_weight
+        self.semantic_weight = semantic_weight
     
     def crossover(
         self,
@@ -336,23 +349,59 @@ class DistilledEvolution:
         for child in candidates:
             struct_score = self.prior.score_tree(child)
             
+            # Semantic coherence score (if semantic prior available)
+            sem_score = 0.0
+            if self.semantic_prior is not None:
+                features_used = list(get_features_used(child))
+                sem_score = self._compute_semantic_coherence(features_used)
+            
             # If we can evaluate fitness, include it
             if evaluate_fn is not None:
                 fitness_score = evaluate_fn(child)
                 total = (
                     self.fitness_weight * fitness_score +
-                    self.structure_weight * struct_score
+                    self.structure_weight * struct_score +
+                    self.semantic_weight * sem_score
                 )
             else:
-                # Without fitness evaluation, use structure + parent fitness heuristic
-                # Prefer children that inherit from fitter parent
-                total = struct_score
+                # Without fitness evaluation, use structure + semantic heuristic
+                total = self.structure_weight * struct_score + self.semantic_weight * sem_score
             
             scores.append(total)
         
         # Return best candidate
         best_idx = np.argmax(scores)
         return candidates[best_idx]
+    
+    def _compute_semantic_coherence(self, features: list[str]) -> float:
+        """
+        Compute semantic coherence of features in a tree.
+        
+        Higher score = features used together are semantically related.
+        This encourages trees like:
+          - Split on Cholesterol → Split on BloodPressure (related health metrics)
+        And discourages:
+          - Split on Cholesterol → Split on HairColor (unrelated)
+        
+        Returns:
+            Mean pairwise similarity of features in tree (0-1)
+        """
+        if self.semantic_prior is None or len(features) < 2:
+            return 0.0
+        
+        total_sim = 0.0
+        n_pairs = 0
+        
+        for f1, f2 in combinations(features, 2):
+            # Check if both features are in the similarity matrix
+            if f1 in self.semantic_prior.index and f2 in self.semantic_prior.columns:
+                total_sim += self.semantic_prior.loc[f1, f2]
+                n_pairs += 1
+        
+        if n_pairs == 0:
+            return 0.0
+        
+        return total_sim / n_pairs
     
     def _generate_candidates(self, parent1: dict, parent2: dict) -> list[dict]:
         """Generate crossover candidates via subtree exchange."""

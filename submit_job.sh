@@ -11,9 +11,11 @@
 # 1. Go to your folder
 cd /home2/nchw73/vanDerSchaarWork/LLEGO
 
+
 # 2. Debug: Job info
 echo "Job running on node: $(hostname)"
 echo "------------------------------------------------------"
 
 # 3. Run the LLEGO experiment
-.venv/bin/python sae_project/nb_main.py
+.venv/bin/python sae_project/extract_sae_priors.py --datasets breast heart
+.venv/bin/python mi_analysis/sae_validation.py --sae-prior-dir sae_project/priors
