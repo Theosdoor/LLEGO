@@ -1,5 +1,5 @@
 uv.lock
-*.err
+# *.err
 results
 
 # Analysis results - ignore raw outputs but keep summaries

@@ -1,0 +1,10 @@
+{
+  "model_name": "gemma-2-2b",
+  "sae_release": "gemma-scope-2b-pt-res-canonical",
+  "sae_id": "layer_12/width_16k/canonical",
+  "device": "cuda",
+  "dtype": "bfloat16",
+  "similarity_method": "jaccard",
+  "activation_threshold": 0.1,
+  "domain": "healthcare"
+}
