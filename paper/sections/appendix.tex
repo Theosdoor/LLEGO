@@ -1,3 +1,52 @@
-\begin{abstract}
-    asdf
-\end{abstract}
+\appendix
+
+\section{Implementation Details}
+
+% =============================================================================
+% PLANNING NOTES
+% =============================================================================
+%
+% A.1 - SAE Configuration
+% - Model: gemma-2-2b
+% - SAE: gemma-scope-2b-pt-res-canonical, layer 12, width 16k
+% - Prompt template: "In {domain}, {feature} refers to..."
+% - Extraction: last token activations
+% - Similarity: Jaccard with threshold 0.1
+%
+% A.2 - Evolution Hyperparameters
+% - Population size: 25
+% - Generations: 15
+% - Tournament size: 3
+% - Mutation rate: 0.1
+% - Crossover candidates: 10
+% - Weights: fitness=0.6, structure=0.0, semantic=0.4 (SAE-only)
+%
+% A.3 - Dataset Details
+% - Table with: name, samples, features, classes, source
+% - Split: 70% train, 10% val, 20% test
+% - Stratified sampling
+%
+% A.4 - Full Results Tables
+% - Complete results with std
+% - Per-seed breakdown if space
+%
+% A.5 - Additional Heatmaps
+% - All datasets' similarity matrices
+%
+% =============================================================================
+
+\subsection{SAE Configuration}
+
+% TODO: Full SAE details
+
+\subsection{Evolution Hyperparameters}
+
+% TODO: GA configuration
+
+\subsection{Dataset Details}
+
+% TODO: Dataset table
+
+\subsection{Complete Results}
+
+% TODO: Full results with std

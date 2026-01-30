@@ -1,3 +1,68 @@
-\begin{abstract}
-    asdf
-\end{abstract}
+\section{Method}
+
+% =============================================================================
+% PLANNING NOTES
+% =============================================================================
+%
+% SECTION 2.1 - Background: LLEGO
+% - Briefly describe LLEGO's approach: GA + LLM-guided crossover/mutation
+% - LLM provides semantic understanding of features
+% - Cost: O(generations × pop_size × API_latency)
+% - Cite ablation: performance drops without semantics
+%
+% SECTION 2.2 - SAE Feature Extraction
+% - Sparse Autoencoders decompose LLM activations into interpretable features
+% - For each feature name: 
+%   1. Construct prompt: "In healthcare, {feature} refers to..."
+%   2. Run through local LLM (gemma-2-2b)
+%   3. Extract activations at layer 12
+%   4. Encode through SAE to get sparse feature vector
+% - Result: d_sae dimensional vector per feature (16k dimensions, ~50 active)
+%
+% SECTION 2.3 - Semantic Similarity Matrix
+% - Compute pairwise similarity between feature vectors
+% - Options: Jaccard (binary), weighted Jaccard, cosine
+% - Jaccard works best: captures shared active SAE features
+% - Matrix is symmetric, size n_features × n_features
+% - Computed ONCE, reused for all experiments
+%
+% SECTION 2.4 - Semantic Coherence Scoring
+% - During evolution, score candidate trees by:
+%   fitness × w1 + structural_prior × w2 + semantic_coherence × w3
+% - Semantic coherence = mean pairwise similarity of features in tree
+% - Encourages using related features together
+% - Example: (age, blood_pressure, cholesterol) > (age, hair_color, shoe_size)
+%
+% SECTION 2.5 - Algorithm
+% - Algorithm box: SAE-LLEGO
+% - Input: dataset, SAE model
+% - Step 1: Extract feature vectors (one-time)
+% - Step 2: Compute similarity matrix
+% - Step 3: Run GA with semantic coherence scoring
+% - Output: Best decision tree
+%
+% FIGURES TO INCLUDE:
+% - Figure 1: Pipeline diagram (feature → LLM → SAE → similarity matrix → GA)
+% - Figure 2: Example similarity heatmap for heart dataset
+%
+% =============================================================================
+
+\subsection{Background: LLEGO}
+
+% TODO: Brief description of LLEGO
+
+\subsection{SAE Feature Extraction}
+
+% TODO: Describe SAE extraction process
+
+\subsection{Semantic Similarity Matrix}
+
+% TODO: Describe similarity computation
+
+\subsection{Semantic Coherence Scoring}
+
+% TODO: Describe how we use similarity in evolution
+
+\subsection{SAE-LLEGO Algorithm}
+
+% TODO: Algorithm pseudocode

@@ -45,7 +45,7 @@ DATASET_FEATURES = {
     ],
     "diabetes": [
         "age", "sex", "body mass index", "average blood pressure",
-        "serum1", "serum2", "serum3", "serum4", "serum5", "serum6"
+        "serum 1", "serum 2", "serum 3", "serum 4", "serum 5", "serum 6"
     ],
     "liver": [
         "mean corpuscular volume", "alkaline phosphotase", "alanine aminotransferase",
@@ -57,6 +57,25 @@ DATASET_FEATURES = {
         "personal status", "other debtors", "residence duration", "property",
         "age", "other installment plans", "housing", "existing credits", "job",
         "number of dependents", "telephone", "foreign worker"
+    ],
+    "compas": [
+        "sex", "age", "race", "juvenile felony count", "decile score",
+        "juvenile misdemeanor count", "juvenile other count", "prior count",
+        "days before screening arrest", "is recidivism", "is violent recidivism",
+        "two year recidivism", "charge degree"
+    ],
+    "vehicle": [
+        "compactness", "circularity", "distance circularity", "radius ratio",
+        "praxis aspect ratio", "max length aspect ratio", "scatter ratio",
+        "elongatedness", "praxis rectangular", "length rectangular",
+        "scaled variance major", "scaled variance minor", "scaled radius gyration",
+        "skewness major", "skewness minor", "kurtosis minor", "kurtosis major",
+        "hollow ratio"
+    ],
+    "adult": [
+        "age", "workclass", "final weight", "education", "education years",
+        "marital status", "occupation", "relationship", "race", "sex",
+        "capital gain", "capital loss", "hours per week", "native country"
     ],
 }
 

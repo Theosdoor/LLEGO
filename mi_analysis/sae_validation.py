@@ -104,6 +104,34 @@ def load_dataset(name: str) -> Tuple[pd.DataFrame, pd.Series, List[str]]:
         y = pd.Series((data.target == 'good').astype(int))
         feature_names = list(X.columns)
     
+    elif name == "compas":
+        from sklearn.datasets import fetch_openml
+        data = fetch_openml("compas-two-years", version=1, as_frame=True)
+        X = data.data
+        for col in X.columns:
+            if X[col].dtype == 'object' or X[col].dtype.name == 'category':
+                X[col] = pd.Categorical(X[col]).codes
+        y = pd.Series(data.target.astype(int))
+        feature_names = list(X.columns)
+    
+    elif name == "vehicle":
+        from sklearn.datasets import fetch_openml
+        data = fetch_openml("vehicle", version=1, as_frame=True)
+        X = data.data
+        # Binary: van vs others
+        y = pd.Series((data.target == 'van').astype(int))
+        feature_names = list(X.columns)
+    
+    elif name == "adult":
+        from sklearn.datasets import fetch_openml
+        data = fetch_openml("adult", version=2, as_frame=True)
+        X = data.data
+        for col in X.columns:
+            if X[col].dtype == 'object' or X[col].dtype.name == 'category':
+                X[col] = pd.Categorical(X[col]).codes
+        y = pd.Series((data.target == '>50K').astype(int))
+        feature_names = list(X.columns)
+    
     else:
         raise ValueError(f"Unknown dataset: {name}")
     
