@@ -16,7 +16,7 @@ from utils.wandb import maybe_initialize_wandb
 logger = logging.getLogger(__name__)
 
 
-@hydra.main(config_path="../configs", config_name="gatree")
+@hydra.main(config_path="../configs", config_name="gatree", version_base="1.2")
 def main(cfg: DictConfig) -> None:
 
     dataset_name = cfg.dataset.dataset_name

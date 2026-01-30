@@ -161,3 +161,76 @@ else:
 **Verified:** GATree baseline experiments completed successfully on credit-g, heart-statlog, liver, breast, vehicle datasets.
 
 ---
+
+## 2026-01-30: SAE Semantic Prior Validation
+
+**Objective:** Validate whether SAE-extracted semantic priors can match or exceed LLM-guided evolution without any API calls.
+
+**Method:** 
+1. Extract feature semantic similarity using SAE activations from local LLM (gemma-2-2b)
+2. Use similarity matrix to score tree candidates by semantic coherence
+3. Compare 4 methods: GATree, Distilled-Struct, Distilled-SAE, Distilled-Full
+
+**SAE Extraction Command:**
+```bash
+python sae_project/extract_sae_priors.py --datasets breast heart liver credit-g
+```
+
+**Validation Command:**
+```bash
+python mi_analysis/sae_validation.py \
+    --sae-prior-dir sae_project/priors \
+    --datasets breast heart liver credit-g \
+    --max-depth 3 \
+    --n-seeds 5
+```
+
+**Results (depth=3, 5 seeds, balanced accuracy):**
+
+| Dataset | GATree | Distilled-Struct | Distilled-SAE | Distilled-Full |
+|---------|--------|-----------------|---------------|----------------|
+| breast | 0.900 | 0.915 | 0.915 | 0.886 |
+| heart | 0.712 | 0.738 | **0.776** | 0.707 |
+| liver | 0.581 | 0.559 | 0.582 | 0.548 |
+| credit-g | 0.672 | 0.656 | **0.684** | 0.673 |
+| **Average** | 0.716 | 0.717 | **0.739** | 0.704 |
+
+**Key Findings:**
+1. **Distilled-SAE outperforms GATree by +2.3% on average**
+2. Best on heart (+6.4%) and credit-g (+1.2%)
+3. Combining priors (Full) hurts performance - likely conflicting signals
+4. SAE captures meaningful semantics (age↔thalassemia: 0.92, chest_pain↔blood_pressure: 0.89)
+
+**SAE Priors Generated:** `sae_project/priors/{breast,heart,liver,credit-g}/`
+
+**Files Created/Modified:**
+- `sae_project/sae_semantic_prior.py` - SAE extraction class
+- `sae_project/extract_sae_priors.py` - Batch extraction script
+- `mi_analysis/distillation.py` - Added semantic coherence scoring
+- `mi_analysis/sae_validation.py` - 4-way comparison validation
+
+---
+
+## 2026-01-30: SAE Validation - Depth 4 Results
+
+**Results (depth=4, 5 seeds, balanced accuracy):**
+
+| Dataset | GATree | Distilled-Struct | Distilled-SAE | Distilled-Full |
+|---------|--------|-----------------|---------------|----------------|
+| breast | **0.898** | 0.893 | 0.876 | 0.865 |
+| heart | 0.721 | 0.733 | **0.752** | 0.714 |
+| liver | **0.512** | 0.510 | 0.480 | 0.539 |
+| credit-g | 0.671 | 0.655 | **0.684** | 0.672 |
+| **Average** | **0.701** | 0.698 | 0.698 | 0.698 |
+
+**Key Observations:**
+1. SAE advantage diminishes at depth=4 compared to depth=3
+2. SAE still best on heart (+3.1%) and credit-g (+1.3%)
+3. GATree competitive/better on breast and liver at higher depth
+4. High variance in SAE results (std=0.164 vs GATree std=0.149)
+
+**Interpretation:** Semantic priors may be more valuable for shallow trees where feature selection is more constrained. At depth=4, structural exploration has more room.
+
+---
+
+

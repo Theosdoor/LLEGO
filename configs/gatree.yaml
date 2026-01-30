@@ -9,6 +9,8 @@ metric_key: "${dataset.search_objective}_train"
 hydra:
   run:
     dir: ./results
+  job:
+    chdir: true
 
 # gatree algorithm settings
 gatree:
@@ -24,3 +26,4 @@ defaults:
   - fitness_eval: default
   - metrics_logger: default
   - hof: default
+  - _self_
