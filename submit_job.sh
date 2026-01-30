@@ -5,7 +5,7 @@
 #SBATCH --partition=ug-gpu-small
 #SBATCH --gres=gpu:turing:1
 #SBATCH --time=5:00:00
-#SBATCH --mem=16G
+#SBATCH --mem=28G
 
 
 # 1. Go to your folder
@@ -16,4 +16,4 @@ echo "Job running on node: $(hostname)"
 echo "------------------------------------------------------"
 
 # 3. Run the LLEGO experiment
-uv run python sae_project/nb_main.py
+.venv/bin/python sae_project/nb_main.py

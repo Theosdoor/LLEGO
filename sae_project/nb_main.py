@@ -2,48 +2,63 @@
 # ==========================================
 # 1. SETUP & IMPORTS
 # ==========================================
+import os
 import torch
 import numpy as np
 import pandas as pd
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+from tqdm import tqdm
 from transformer_lens import HookedTransformer
 from sae_lens import SAE
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 # Configuration
 MODEL_NAME = "gemma-2-2b"
-# Using Layer 12 (Middle-Late) where semantic abstraction is high
-# "width_16k" is the standard SAE size, "canonical" is the standard training run
-SAE_RELEASE = "gemma-scope-2b-pt-res" 
+# https://huggingface.co/google/gemma-scope-2b-pt-res
+SAE_RELEASE = "gemma-scope-2b-pt-res-canonical"
 SAE_ID = "layer_12/width_16k/canonical" 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Running on {device}...")
 
 RESULTS_DIR = "./results/"
+Path(RESULTS_DIR).mkdir(parents=True, exist_ok=True)
 
 #%%
 # ==========================================
 # 2. LOAD MODELS (The Heavy Lifting)
 # ==========================================
 # Load the base model (HookedTransformer wraps HuggingFace models for mech interp)
-model = HookedTransformer.from_pretrained(MODEL_NAME, device=device)
+model = HookedTransformer.from_pretrained(
+    MODEL_NAME,
+    device=device,
+    dtype="bfloat16",
+    center_unembed=False,
+    )
 
 # Load the Sparse Autoencoder (SAE)
-# This downloads the specific SAE for the residual stream at Layer 12
-sae, cfg_dict, sparsity = SAE.from_pretrained(
+sae = SAE.from_pretrained(
     release=SAE_RELEASE,
     sae_id=SAE_ID,
     device=device
 )
 
-print(f"Loaded Model & SAE. SAE Hook Point: {sae.cfg.hook_name}")
+hook_point = getattr(sae.cfg, "hook_name", None) or getattr(sae.cfg, "hook_point", None)
+if not hook_point:
+    raise ValueError("Could not determine hook_point from SAE config")
+
+print(f"Loaded Model & SAE. SAE Hook Point: {hook_point}")
 
 #%%
 # ==========================================
 # 3. DEFINE EXTRACTION LOGIC (The "White-Box" Core)
 # ==========================================
 
-def get_concept_vector(feature_name: str, use_sae=True):
+def get_concept_vector(feature_names: str, use_sae=True):
     """
     Extracts the internal representation of a tabular feature.
     
@@ -54,28 +69,27 @@ def get_concept_vector(feature_name: str, use_sae=True):
     # 1. Contextual Prompting
     # We wrap the feature in a natural sentence to force the model to "think" about its meaning.
     # Without this, "CP" might be interpreted as "Club Penguin" instead of "Chest Pain".
-    prompt = f"Data column: '{feature_name}'. Description: The patient's {feature_name}."
-    
+    prompts = [
+        f"Data column: '{feat}'. Description: The patient's {feat}" 
+        for feat in feature_names
+    ]    
     # 2. Run Model with Cache
     # We only need the activation at the specific hook point the SAE was trained on.
     with torch.no_grad():
-        _, cache = model.run_with_cache(prompt, names_filter=[sae.cfg.hook_name])
-        
-        # Extract the activation at the FINAL token (position -1)
-        # Shape: [batch, pos, d_model] -> [d_model]
-        resid_act = cache[sae.cfg.hook_name][0, -1, :]
+        _, cache = model.run_with_cache(prompts, names_filter=[hook_point])
+        resid_acts = cache[hook_point][0, -1, :]
         
     if not use_sae:
-        return resid_act # Return dense vector (d_model size)
+        return resid_acts # Shape: [batch_size, seq_len, d_model] -> [batch_size, d_model]
 
     # 3. Encode with SAE
     # Transforms dense vector -> Sparse feature vector (d_sae size, e.g. 16k)
     with torch.no_grad():
-        feature_acts = sae.encode(resid_act)
+        feature_acts = sae.encode(resid_acts)
     
     return feature_acts
 
-def compute_similarity(vec_a, vec_b, method="jaccard"):
+def compute_similarity(vec_a, vec_b, method="jaccard", threshold=0.1):
     """
     Computes semantic similarity between two concept vectors.
     """
@@ -87,7 +101,6 @@ def compute_similarity(vec_a, vec_b, method="jaccard"):
         # Only makes sense for SAE vectors (which are sparse)
         
         # Threshold to consider a feature "active" (filter out noise)
-        threshold = 0.1 
         active_a = (vec_a > threshold).float()
         active_b = (vec_b > threshold).float()
         
@@ -107,43 +120,45 @@ def compute_similarity(vec_a, vec_b, method="jaccard"):
 columns = ["Age", "Sex", "CP", "RestingBP", "Cholesterol", "FBS", "MaxHR", "ExAng"]
 
 print("Extracting Concept Vectors...")
-vectors = {}
-for col in columns:
-    # We use SAE vectors for better interpretability
-    vectors[col] = get_concept_vector(col, use_sae=True)
+vectors_tensor = get_concept_vectors_batched(columns, use_sae=True)
+
 
 # Build the Semantic Matrix
 n_cols = len(columns)
 matrix = np.zeros((n_cols, n_cols))
 
-for i in range(n_cols):
+for i in tqdm(range(n_cols)):
     for j in range(n_cols):
         if i == j:
             matrix[i, j] = 1.0
         else:
-            sim = compute_similarity(vectors[columns[i]], vectors[columns[j]], method="jaccard")
+            sim = compute_similarity(
+                vectors_tensor[i], 
+                vectors_tensor[j], 
+                method="jaccard",
+                threshold=0.1 # Adjust if heatmap is all zeros
+            )
             matrix[i, j] = sim
 
 # Convert to DataFrame for visualization
 semantic_df = pd.DataFrame(matrix, index=columns, columns=columns)
+csv_path = os.path.join(RESULTS_DIR, "semantic_affinity_matrix.csv")
+semantic_df.to_csv(csv_path)
+print(f"Matrix saved to {csv_path}")
 
 #%%
 # ==========================================
 # 5. VISUALIZATION & SANITY CHECK
 # ==========================================
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 
-results_path = Path(RESULTS_DIR)
-results_path.mkdir(parents=True, exist_ok=True)
-fig_path = results_path / "semantic_affinity_matrix.png"
-
-plt.figure(figsize=(8, 6))
+plt.figure(figsize=(10, 6))
 sns.heatmap(semantic_df, annot=True, cmap="viridis", fmt=".2f")
-plt.title("SAE-Derived Semantic Affinity Matrix (One-Shot)")
+plt.title(f"SAE-Derived Affinity ({MODEL_NAME})\nMethod: Jaccard (Last Token)")
 plt.tight_layout()
+
+fig_path = os.path.join(RESULTS_DIR, "semantic_affinity_matrix.png")
 plt.savefig(fig_path, dpi=300)
+print(f"Heatmap saved to {fig_path}")
 plt.close()
 
 # Interpretation Check:
