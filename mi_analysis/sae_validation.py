@@ -82,8 +82,27 @@ def load_dataset(name: str) -> Tuple[pd.DataFrame, pd.Series, List[str]]:
         data = load_diabetes()
         X = pd.DataFrame(data.data, columns=data.feature_names)
         # Convert to classification (above/below median)
-        y = (data.target > np.median(data.target)).astype(int)
+        y = pd.Series((data.target > np.median(data.target)).astype(int))
         feature_names = list(data.feature_names)
+    
+    elif name == "liver":
+        from sklearn.datasets import fetch_openml
+        data = fetch_openml("liver-disorders", version=1, as_frame=True)
+        X = data.data
+        # Target: selector field (1 or 2)
+        y = pd.Series((data.target.astype(int) == 2).astype(int))
+        feature_names = list(X.columns)
+    
+    elif name == "credit-g":
+        from sklearn.datasets import fetch_openml
+        data = fetch_openml("credit-g", version=1, as_frame=True)
+        X = data.data
+        # Handle categorical columns - convert to numeric
+        for col in X.columns:
+            if X[col].dtype == 'object' or X[col].dtype.name == 'category':
+                X[col] = pd.Categorical(X[col]).codes
+        y = pd.Series((data.target == 'good').astype(int))
+        feature_names = list(X.columns)
     
     else:
         raise ValueError(f"Unknown dataset: {name}")
@@ -395,9 +414,10 @@ def run_validation(
     datasets: List[str],
     structural_prior_path: Optional[Path] = None,
     sae_prior_dir: Optional[Path] = None,
-    n_seeds: int = 3,
+    n_seeds: int = 5,
     pop_size: int = 25,
     n_generations: int = 15,
+    max_depth: int = 3,
     output_dir: Path = Path("mi_analysis/results/sae_validation"),
 ) -> pd.DataFrame:
     """
@@ -454,7 +474,7 @@ def run_validation(
             # Method 1: GATree
             tree, val_acc, history = run_gatree(
                 X_train, y_train, X_val, y_val, feature_names,
-                pop_size=pop_size, n_generations=n_generations, seed=seed
+                pop_size=pop_size, n_generations=n_generations, max_depth=max_depth, seed=seed
             )
             train_acc = TreeClassifier(tree).evaluate(X_train, y_train, feature_names)
             convergence_gen = next((i for i, h in enumerate(history) if h >= 0.9 * max(history)), len(history))
@@ -471,7 +491,7 @@ def run_validation(
             tree, val_acc, history = run_distilled(
                 X_train, y_train, X_val, y_val, feature_names,
                 structural_prior=structural_prior, semantic_prior=None,
-                pop_size=pop_size, n_generations=n_generations, seed=seed
+                pop_size=pop_size, n_generations=n_generations, max_depth=max_depth, seed=seed
             )
             train_acc = TreeClassifier(tree).evaluate(X_train, y_train, feature_names)
             convergence_gen = next((i for i, h in enumerate(history) if h >= 0.9 * max(history)), len(history))
@@ -489,7 +509,7 @@ def run_validation(
                 tree, val_acc, history = run_distilled(
                     X_train, y_train, X_val, y_val, feature_names,
                     structural_prior=None, semantic_prior=semantic_prior,
-                    pop_size=pop_size, n_generations=n_generations, seed=seed
+                    pop_size=pop_size, n_generations=n_generations, max_depth=max_depth, seed=seed
                 )
                 train_acc = TreeClassifier(tree).evaluate(X_train, y_train, feature_names)
                 convergence_gen = next((i for i, h in enumerate(history) if h >= 0.9 * max(history)), len(history))
@@ -506,7 +526,7 @@ def run_validation(
                 tree, val_acc, history = run_distilled(
                     X_train, y_train, X_val, y_val, feature_names,
                     structural_prior=structural_prior, semantic_prior=semantic_prior,
-                    pop_size=pop_size, n_generations=n_generations, seed=seed
+                    pop_size=pop_size, n_generations=n_generations, max_depth=max_depth, seed=seed
                 )
                 train_acc = TreeClassifier(tree).evaluate(X_train, y_train, feature_names)
                 convergence_gen = next((i for i, h in enumerate(history) if h >= 0.9 * max(history)), len(history))
@@ -557,10 +577,12 @@ def main():
     )
     
     parser = argparse.ArgumentParser(description="SAE Validation Experiments")
-    parser.add_argument("--datasets", nargs="+", default=["breast", "heart", "diabetes"])
-    parser.add_argument("--n-seeds", type=int, default=3)
+    # Match LLEGO paper: credit-g, heart-statlog, liver, breast
+    parser.add_argument("--datasets", nargs="+", default=["breast", "heart", "liver", "credit-g"])
+    parser.add_argument("--n-seeds", type=int, default=5)  # LLEGO uses 5 seeds
     parser.add_argument("--pop-size", type=int, default=25)
     parser.add_argument("--n-generations", type=int, default=15)
+    parser.add_argument("--max-depth", type=int, default=3)  # Also test with 4
     parser.add_argument("--structural-prior", type=Path, default=Path("mi_analysis/results/phase2/structural_prior.pkl"))
     parser.add_argument("--sae-prior-dir", type=Path, default=None, help="Directory containing SAE priors per dataset")
     parser.add_argument("--output-dir", type=Path, default=Path("mi_analysis/results/sae_validation"))
@@ -581,6 +603,7 @@ def main():
         n_seeds=args.n_seeds,
         pop_size=args.pop_size,
         n_generations=args.n_generations,
+        max_depth=args.max_depth,
         output_dir=args.output_dir,
     )
 

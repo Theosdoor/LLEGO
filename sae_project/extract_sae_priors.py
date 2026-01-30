@@ -47,6 +47,17 @@ DATASET_FEATURES = {
         "age", "sex", "body mass index", "average blood pressure",
         "serum1", "serum2", "serum3", "serum4", "serum5", "serum6"
     ],
+    "liver": [
+        "mean corpuscular volume", "alkaline phosphotase", "alanine aminotransferase",
+        "aspartate aminotransferase", "gamma-glutamyl transpeptidase", "drinks per day"
+    ],
+    "credit-g": [
+        "checking account status", "duration in months", "credit history", "purpose",
+        "credit amount", "savings account", "employment duration", "installment rate",
+        "personal status", "other debtors", "residence duration", "property",
+        "age", "other installment plans", "housing", "existing credits", "job",
+        "number of dependents", "telephone", "foreign worker"
+    ],
 }
 
 

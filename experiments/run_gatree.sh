@@ -5,7 +5,7 @@
 
 # DATASET_LIST=(credit-g diabetes compas heart-statlog liver breast vehicle)
 DATASET_LIST=(credit-g heart-statlog liver breast)
-MAX_DEPTH_LIST=(3)
+MAX_DEPTH_LIST=(3 4)
 SEED_LIST=(0 1 2)
 exp_name='classification'
 
