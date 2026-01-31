@@ -33,9 +33,9 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 @dataclass
 class SAEConfig:
     """Configuration for SAE extraction."""
-    model_name: str = "gemma-2-2b"
-    sae_release: str = "gemma-scope-2b-pt-res-canonical"
-    sae_id: str = "layer_12/width_16k/canonical"
+    model_name: str = "google/gemma-3-4b-it"  # Gemma Scope 2 = Gemma 3
+    sae_release: str = "gemma-scope-2-4b-it-res_post"  # IT version for instruction-tuned
+    sae_id: str = "layer_17/width_64k/l0_medium"  # Layer 17, 64k width
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     dtype: str = "bfloat16"
     
@@ -43,6 +43,7 @@ class SAEConfig:
     similarity_method: str = "jaccard"  # jaccard, weighted_jaccard, cosine, ensemble
     activation_threshold: float = 0.1   # For jaccard methods
     domain: str = "healthcare"          # For prompt context
+    prompt_style: str = "descriptive"   # descriptive, definition, example, multi
     
     def to_dict(self) -> dict:
         return asdict(self)
@@ -159,13 +160,73 @@ class SAESemanticPrior:
         self._loaded = True
     
     def _build_prompt(self, feature_name: str) -> str:
-        """Build contextual prompt for feature extraction."""
-        domain_prompts = {
-            "healthcare": f"In a clinical dataset, the column '{feature_name}' represents a patient health metric: {feature_name}.",
-            "finance": f"In a financial dataset, the column '{feature_name}' represents an economic indicator: {feature_name}.",
-            "generic": f"Dataset column: '{feature_name}'. This feature measures: {feature_name}."
-        }
-        return domain_prompts.get(self.config.domain, domain_prompts["generic"])
+        """
+        Build contextual prompt for feature extraction.
+        
+        Different prompt styles elicit different semantic representations:
+        - descriptive: Rich description of what the feature measures
+        - definition: Dictionary-style definition
+        - example: Gives example values and context
+        - multi: Combines multiple perspectives
+        """
+        style = getattr(self.config, 'prompt_style', 'descriptive')
+        domain = self.config.domain
+        
+        # Domain-specific context
+        domain_context = {
+            "healthcare": "medical/clinical",
+            "finance": "financial/economic", 
+            "demographic": "demographic/census",
+            "generic": "data analysis"
+        }.get(domain, "data analysis")
+        
+        if style == "descriptive":
+            # Rich description prompts
+            prompts = {
+                "healthcare": f"""In medical research, '{feature_name}' is a clinical measurement that captures important patient health information. {feature_name} is commonly used alongside other vital signs and lab results to assess patient conditions, predict outcomes, and guide treatment decisions.""",
+                "finance": f"""In financial analysis, '{feature_name}' is an economic indicator that reflects market conditions or creditworthiness. {feature_name} is typically analyzed alongside other financial metrics to assess risk, predict defaults, and inform lending decisions.""",
+                "demographic": f"""In demographic studies, '{feature_name}' is a population characteristic that describes individuals or households. {feature_name} is used in census data, social research, and policy analysis to understand population distributions.""",
+                "generic": f"""The feature '{feature_name}' represents a measurable attribute in a dataset. {feature_name} captures quantitative or categorical information about the subjects being studied."""
+            }
+        elif style == "definition":
+            # Dictionary-style definitions
+            prompts = {
+                "healthcare": f"{feature_name}: A clinical variable measured in patient health records, typically recorded during medical examinations or laboratory tests.",
+                "finance": f"{feature_name}: A financial metric used in credit scoring and risk assessment, indicating borrower characteristics or loan attributes.",
+                "demographic": f"{feature_name}: A demographic attribute describing characteristics of individuals in population surveys and census data.",
+                "generic": f"{feature_name}: A variable or attribute measured in a dataset for statistical analysis."
+            }
+        elif style == "example":
+            # Example-based prompts
+            prompts = {
+                "healthcare": f"""Patient record example - {feature_name}: This field contains values like [low/medium/high] or numerical measurements. Doctors use {feature_name} to assess health status.""",
+                "finance": f"""Loan application example - {feature_name}: This field records information about the borrower or loan. Banks use {feature_name} to evaluate creditworthiness.""",
+                "demographic": f"""Census record example - {feature_name}: This field captures demographic information about individuals or households.""",
+                "generic": f"""Dataset example - {feature_name}: This column contains measured values for each observation."""
+            }
+        elif style == "multi":
+            # Multi-perspective (combines approaches)
+            prompts = {
+                "healthcare": f"""{feature_name} is a clinical measurement in medical datasets.
+Definition: {feature_name} quantifies a patient health characteristic.
+Context: Used by doctors for diagnosis, prognosis, and treatment planning.
+Related to: vital signs, lab results, patient history.""",
+                "finance": f"""{feature_name} is a financial indicator in credit datasets.
+Definition: {feature_name} measures borrower or loan characteristics.
+Context: Used by banks for credit scoring and risk assessment.
+Related to: credit history, income, debt-to-income ratio.""",
+                "demographic": f"""{feature_name} is a demographic attribute in population data.
+Definition: {feature_name} describes individual or household characteristics.
+Context: Used in census, surveys, and social research.
+Related to: age, education, occupation, income.""",
+                "generic": f"""{feature_name} is a measured variable in this dataset.
+Definition: {feature_name} captures a specific attribute of each observation.
+Context: Used for statistical analysis and modeling."""
+            }
+        else:
+            raise ValueError(f"Unknown prompt_style: {style}")
+        
+        return prompts.get(domain, prompts["generic"])
     
     def extract_feature_vectors(
         self, 

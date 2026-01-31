@@ -89,13 +89,15 @@ def main():
     parser = argparse.ArgumentParser(description="Extract SAE semantic priors")
     parser.add_argument("--datasets", nargs="+", default=["breast", "heart", "diabetes"])
     parser.add_argument("--output-dir", type=Path, default=Path("sae_project/priors"))
-    parser.add_argument("--model", type=str, default="gemma-2-2b")
-    parser.add_argument("--sae-release", type=str, default="gemma-scope-2b-pt-res-canonical")
-    parser.add_argument("--sae-id", type=str, default="layer_12/width_16k/canonical")
+    parser.add_argument("--model", type=str, default="google/gemma-3-4b-it")
+    parser.add_argument("--sae-release", type=str, default="gemma-scope-2-4b-it-res_post")
+    parser.add_argument("--sae-id", type=str, default="layer_17/width_64k/l0_medium")
     parser.add_argument("--method", type=str, default="jaccard", 
                        choices=["jaccard", "weighted_jaccard", "cosine", "ensemble"])
     parser.add_argument("--threshold", type=float, default=0.1)
     parser.add_argument("--domain", type=str, default="healthcare")
+    parser.add_argument("--prompt-style", type=str, default="descriptive",
+                       choices=["descriptive", "definition", "example", "multi"])
     
     args = parser.parse_args()
     
@@ -106,6 +108,7 @@ def main():
         similarity_method=args.method,
         activation_threshold=args.threshold,
         domain=args.domain,
+        prompt_style=args.prompt_style,
     )
     
     logger.info("Initializing SAE Semantic Prior extractor...")
