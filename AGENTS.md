@@ -100,7 +100,7 @@ For reproducibility, maintain clear records of experiments:
 - Install dependencies: `uv sync` (creates venv and installs all required packages)
 - Install external baselines: `bash install_external.sh`
 - Run unit tests: `python -m pytest tests/`
-- Run a single experiment: `uv run python experiments/exp_llego.py dataset=<dataset_name> seed=<seed>`
+- Run a single experiment: `python3 experiments/exp_llego.py dataset=<dataset_name> seed=<seed>`
 - Run batch experiments: Use the provided shell scripts (e.g., `bash experiments/run_llego.sh`)
 - Build paper PDF (requires `latexmk`): `make -C paper`
 
@@ -115,7 +115,7 @@ Follow language-standard style and enforce it with a formatter. If you add Pytho
 Place tests in `tests/` and mirror module paths. Use `test_*.py` naming. Target meaningful coverage for new logic and include at least one failure-mode test for critical paths.
 
 ## Commit & Pull Request Guidelines
-No Git history is available in this repo. Use Conventional Commits (e.g., `feat: add feature extraction pipeline`). PRs should include: concise summary, test results, linked issue (if any), and screenshots or sample outputs for user-facing changes.
+Use Conventional Commits (e.g., `feat: add feature extraction pipeline`). PRs should include: concise summary, test results, linked issue (if any), and screenshots or sample outputs for user-facing changes.
 
 ## Security & Configuration
 Do not commit secrets or API tokens. Use `.env` for local configuration and document required variables in `README.md` when you add them.
