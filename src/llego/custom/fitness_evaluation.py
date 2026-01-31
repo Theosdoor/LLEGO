@@ -110,6 +110,22 @@ class FitnessEvaluation:
             for split in ["train", "val", "test"]:
                 y_pred = generic_tree.predict(self.data[f"X_{split}"])
                 y = self.data[f"y_{split}"]
+                
+                # Ensure y_pred has the same dtype as y to avoid sklearn type mismatch errors
+                # The LLM may generate leaf values as strings or different numeric types
+                if self.task_type == "classification":
+                    try:
+                        y_pred = y_pred.astype(y.dtype)
+                    except (ValueError, TypeError):
+                        # If casting fails, try to convert to integers (label-encoded values)
+                        try:
+                            y_pred = np.array([int(float(p)) for p in y_pred])
+                        except (ValueError, TypeError):
+                            # Last resort: map predictions to known labels
+                            unique_labels = np.unique(y)
+                            # Map any unknown predictions to the first label
+                            y_pred = np.array([p if p in unique_labels else unique_labels[0] for p in y_pred])
+                
                 fitness = self.fitness_metric(y, y_pred)
                 fitness_dict[f"{self.fitness_name}_{split}"] = fitness
 

@@ -45,6 +45,7 @@ dependencies = [
   "seaborn>=0.13.2",
   "matplotlib>=3.10.8",
   "gatree>=0.2.0",
+  "transformers>=4.57.6",
 ]
 
 [tool.setuptools]
